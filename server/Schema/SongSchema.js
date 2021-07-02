@@ -15,5 +15,5 @@ const Songs= new Schema({
  amountOfDownloads: { type: String, default: 0 }
    })
 
-const SongSchema = mongoose.model('musicappbackend', Songs)
+const SongSchema = mongoose.model('songsUpload', Songs)
 export default SongSchema

@@ -1,4 +1,3 @@
-import UploadSong from '../../Upload/UploadNewSong'
 import {
  Avatar,
  Box,
@@ -17,16 +16,37 @@ import {
  useDisclosure,
 } from '@chakra-ui/react'
 import React from 'react'
-import { AiFillGift } from 'react-icons/ai'
-import { BsGearFill } from 'react-icons/bs'
 import { FaBell, FaRss } from 'react-icons/fa'
 import { FiMenu, FiSearch, FiUploadCloud } from 'react-icons/fi'
 import { HiCode } from 'react-icons/hi'
 import { MdHome, MdKeyboardArrowRight } from 'react-icons/md'
+import { useParams, NavLink as Navigate } from 'react-router-dom'
+import UploadSong from '../../Upload/UploadNewSong'
 
 export default function Swibc() {
  const sidebar = useDisclosure()
  const integrations = useDisclosure()
+
+ const [location, setLocation] = React.useState({
+  home: false,
+  upload: false,
+ })
+
+ let { params } = useParams()
+
+ //  Changes content of div based on params
+ React.useEffect(() => {
+  params === 'uploadsong' && setLocation({ upload: true })
+  params === 'home' && setLocation({ home: true })
+  console.log(location.upload)
+  return () => {
+   setLocation({
+    home: false,
+    upload: false,
+   })
+  }
+ }, [params])
+
 
  const NavItem = props => {
   const { icon, children, ...rest } = props
@@ -87,9 +107,11 @@ export default function Swibc() {
     color="gray.600"
     aria-label="Main Navigation"
    >
-    <NavItem icon={MdHome}>Home</NavItem>
+    <NavItem icon={MdHome}  as={Navigate} to="/dashboard/home">Home</NavItem>
     <NavItem icon={FaRss}>Articles</NavItem>
-    <NavItem icon={FiUploadCloud}>Upload New Song</NavItem>
+    <NavItem icon={FiUploadCloud} as={Navigate} to="/dashboard/uploadsong">
+     Upload New Song
+    </NavItem>
     <NavItem icon={HiCode} onClick={integrations.onToggle}>
      Integrations
      <Icon
@@ -158,8 +180,8 @@ export default function Swibc() {
     </Flex>
 
     <Box as="main" p="4">
-     <UploadSong />
-     <Box borderWidth="4px" borderStyle="dashed" rounded="md" h="96" />
+     {location.upload && <UploadSong />}
+     {location.home && 'Home here'}
     </Box>
    </Box>
   </Box>

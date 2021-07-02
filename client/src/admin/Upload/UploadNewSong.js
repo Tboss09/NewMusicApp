@@ -1,15 +1,13 @@
-import AudioPlayer from 'react-h5-audio-player'
-import { useForm } from 'react-hook-form'
-
+import axios from '../../axios/axiosConfig'
 import {
  Box,
  Button,
  chakra,
  Flex,
  FormControl,
+ FormErrorMessage,
  FormLabel,
  GridItem,
- Heading,
  Icon,
  Image,
  Input,
@@ -17,18 +15,20 @@ import {
  SimpleGrid,
  Stack,
  Text,
- Tooltip,
  useColorModeValue,
+ useToast,
  VisuallyHidden,
 } from '@chakra-ui/react'
-import { RiImageAddLine } from 'react-icons/ri'
-import { CgMusic } from 'react-icons/cg'
-import { useToast } from '@chakra-ui/react'
 import React from 'react'
 import FileBase64 from 'react-file-base64'
+import AudioPlayer from 'react-h5-audio-player'
+import { useForm } from 'react-hook-form'
+import { CgMusic } from 'react-icons/cg'
+import { RiImageAddLine } from 'react-icons/ri'
 
 export default function Component() {
  const toast = useToast()
+ const [songUploadError, setSongUploadError] = React.useState(false)
  const initialState = {
   songName: '',
   author: '',
@@ -41,15 +41,31 @@ export default function Component() {
  const {
   register,
   handleSubmit,
-  watch,
+  setError,
   formState: { errors },
  } = useForm()
- const onSubmit = data => console.log(data)
 
- //  Validation of forms
+ const onSubmit = React.useCallback(
+  data => {
+   const { audio, audioCoverImage } = newSong
+   const formDetails = { ...data, audio, audioCoverImage }
+   formDetails.audio === undefined && setSongUploadError(true)
+   if (formDetails.audio !== undefined && data) {
+    axios
+     .post('/api/v1/music', { formDetails })
+     .then(({ res }) => console.log(res))
+     .catch(err => console.log(err))
+   }
+  },
+  
+  [newSong]
+ )
+
+ 
  //  THis handles Images Upload
  const handleImageUpload = file => {
   const imageSize = parseInt(file.size)
+  // /if images size is bigger than 8mb, show a warning
   if (imageSize >= 8000) {
    toast({
     title: 'Image Size Limit exceeded',
@@ -59,9 +75,9 @@ export default function Component() {
     position: 'top-right',
     isClosable: true,
    })
-   console.log('image too large')
   } else if (parseInt(file.size) <= 8000) {
    setNewSong({ ...newSong, audioCoverImage: file.base64 })
+   setSongUploadError(false)
   }
  }
 
@@ -72,30 +88,27 @@ export default function Component() {
    toast({
     title: 'Song Size Limit exceeded',
     description: 'Song uploaded must be less than 10mb',
-    status: 'error',
-    variant: 'left-accent',
+    status: 'warning',
     duration: 5000,
     position: 'top-right',
     isClosable: true,
    })
   } else if (songSize <= 10000) {
+   setSongUploadError(false)
    setNewSong({ ...newSong, audio: song.base64 })
   }
  }
+
  return (
   <Box bg={useColorModeValue('gray.200', 'inherit')} p={10} pt={12}>
    <Box>
-    <SimpleGrid
-     display={{ base: 'initial', md: 'grid' }}
-     maxW="md"
-     mx="auto"
-    >
+    <SimpleGrid display={{ base: 'initial', md: 'grid' }} maxW="md" mx="auto">
      <GridItem mt={[5, null, 0]} colSpan={{ md: 2 }}>
       <chakra.form
        shadow="lg"
        rounded={[null, 'md']}
        overflow={{ sm: 'hidden' }}
-       onSubmit ={handleSubmit(onSubmit)}
+       onSubmit={handleSubmit(onSubmit)}
       >
        <Stack
         px={4}
@@ -105,7 +118,11 @@ export default function Component() {
         p={{ sm: 6 }}
        >
         <SimpleGrid columns={3} spacing={6}>
-         <FormControl as={GridItem} colSpan={[3, 2]}>
+         <FormControl
+          as={GridItem}
+          colSpan={[3, 2]}
+          isInvalid={errors.songName}
+         >
           <FormLabel
            fontSize="md"
            fontWeight="sm"
@@ -116,15 +133,24 @@ export default function Component() {
           <InputGroup size="sm">
            <Input
             type="text"
+            {...register('songName', {
+             required: true,
+             minLength: 4,
+             maxLength: 20,
+            })}
             placeholder="Eg, Chioma my lover"
             focusBorderColor="brand.400"
             rounded="md"
            />
           </InputGroup>
+          <FormErrorMessage>
+           {errors.songName && 'Song title needs to provided'}
+          </FormErrorMessage>
          </FormControl>
         </SimpleGrid>
 
-        <FormControl maxW="md" mx="auto">
+        {/* Upload Songs Form here */}
+        <FormControl maxW="md" mx="auto" isInvalid={songUploadError}>
          <FormLabel
           fontSize="md"
           fontWeight="md"
@@ -156,9 +182,6 @@ export default function Component() {
              <Icon as={CgMusic} w="32" h="20" color="blackAlpha.500" />
             ) : (
              <Box>
-              <Text align="center" pb="3">
-               Name of file here
-              </Text>
               <Box
                as={AudioPlayer}
                align="center"
@@ -166,13 +189,13 @@ export default function Component() {
                showJumpControls={false}
                showSkipControls={false}
                autoPlay={false}
+               defaultDuration="Loading"
                customVolumeControls={[]}
+               layout="horizontal-reverse"
                bg="transparent"
-               shadow="md"
                customAdditionalControls={[]}
                className="audio-player"
                src={newSong.audio}
-               onPlay={e => console.log('onPlay')}
               />
              </Box>
             )}
@@ -191,14 +214,7 @@ export default function Component() {
               rounded="md"
               fontSize="md"
               mr="-10"
-              color={useColorModeValue('brand.600', 'brand.200')}
               pos="relative"
-              _hover={{
-               color: useColorModeValue('brand.400', 'brand.300'),
-              }}
-              _focus={{
-               color: useColorModeValue('brand.400', 'brand.300'),
-              }}
              >
               <Box>
                <Button
@@ -209,7 +225,11 @@ export default function Component() {
                 mx="auto"
                 variant="outline"
                 color="blue.700"
-                _hover={[{ bg: 'blue.900' }, { color: 'white' }]}
+                _hover={[
+                 { bg: 'blue.900' },
+                 { color: 'white' },
+                 { variant: 'outline' },
+                ]}
                >
                 Browse File
                </Button>
@@ -218,6 +238,7 @@ export default function Component() {
                <Input
                 as={FileBase64}
                 id="song-upload"
+                required={true}
                 accept="audio/*"
                 multiple={false}
                 onDone={handleSongUpload}
@@ -232,10 +253,20 @@ export default function Component() {
            </Text>
           </Stack>
          </Flex>
+         <FormErrorMessage>
+          {songUploadError && 'Audio uploading is compulsory'}
+         </FormErrorMessage>
         </FormControl>
+        {/* Upload Songs Form here */}
 
         <div>
-         <FormControl id="songAuthor" mt={1} as={GridItem} colSpan={[3, 2]}>
+         <FormControl
+          isInvalid={errors.songAuthor}
+          id="songAuthor"
+          mt={1}
+          as={GridItem}
+          colSpan={[3, 2]}
+         >
           <FormLabel
            fontSize="md"
            fontWeight="md"
@@ -250,7 +281,16 @@ export default function Component() {
            shadow="sm"
            focusBorderColor="brand.400"
            fontSize={{ sm: 'sm' }}
+           type="text"
+           {...register('songAuthor', {
+            required: true,
+            minLength: 4,
+            maxLength: 20,
+           })}
           />
+          <FormErrorMessage>
+           {errors.songAuthor && 'Song author needs to be provided'}
+          </FormErrorMessage>
          </FormControl>
         </div>
 
@@ -354,11 +394,14 @@ export default function Component() {
         <Button
          type="submit"
          color="#fff"
-         bg="#1A365D"
-         _focus={{ shadow: '' }}
+         bg="blue.700"
+         _focus={{ bg: 'blue.800' }}
+         _active={{ bg: 'blue.900' }}
+         _hover={{ bg: 'blue.800' }}
+         h="12"
          fontWeight="md"
         >
-         Upload
+         Upload Song
         </Button>
        </Box>
       </chakra.form>

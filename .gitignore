@@ -18,6 +18,8 @@ client/build
 # misc
 client/.DS_Store
 client/.env.local
+server/.env.local
+*.env
 client/.env.development.local
 client/.env.test.local
 client/.env.production.local

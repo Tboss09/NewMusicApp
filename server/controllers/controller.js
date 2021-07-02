@@ -1,6 +1,9 @@
 import passport from 'passport'
 import jwt from 'jsonwebtoken'
 import RecordLabel from '../Schema/Schema.js'
+import multer from 'multer'
+import GridFsStorage from 'multer-gridfs-storage'
+import Grid from 'gridfs-stream'
 
 export const getAllMusicFiles = (req, res) => {
  res.status(200).json({ data: 'Hi' })
@@ -49,9 +52,7 @@ export const AdminLogin = (req, res) => {
     } else {
      if (!user) {
       console.log('Error:', 'username or password incorrect')
-      res
-       .status(404)
-       .send("Incorrect username or Password")
+      res.status(404).send('Incorrect username or Password')
      } else {
       req.login(user, function (err) {
        if (err) {
@@ -65,7 +66,7 @@ export const AdminLogin = (req, res) => {
         )
         res.status(200).json({
          success: true,
-         user :user,
+         user: user,
          message: `Authentication successful`,
          token: token,
         })
@@ -79,3 +80,9 @@ export const AdminLogin = (req, res) => {
 }
 
 // Sign up new Admin
+
+// Create new Song
+export const CreateNewSong = (req, res) => {
+ console.log(req.body)
+ 
+}
