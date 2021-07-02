@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
+import 'react-h5-audio-player/lib/styles.css';
 import { ChakraProvider, extendTheme } from '@chakra-ui/react'
 import './index.css'
 import { BrowserRouter as Router } from 'react-router-dom'

@@ -11,47 +11,51 @@ import Admin from './admin/Admin'
 import Dashboard from './admin/Dashboard'
 
 const App = () => {
-  const location = useLocation().pathname
-  const [changeNav, setChangeNav] = React.useState(false)
+ const location = useLocation().pathname
+ const [changeNav, setChangeNav] = React.useState(false)
 
-  React.useEffect(() => {
-    location === '/admin' || location === '/dashboard' ? setChangeNav(true) : setChangeNav(false)
-  }, [location])
+ React.useEffect(() => {
+  location === '/admin' ||
+  location === '/dashboard' 
+   ? setChangeNav(true)
+   : setChangeNav(false)
+ }, [location])
 
-  return (
-    <>
-      {!changeNav && <Nav /> }
-      
+ return (
+  <>
+   {!changeNav && <Nav />}
 
-      <Switch>
-        <Route exact path='/'>
-          <Home />
-        </Route>
+   <Switch>
+    <Route exact path="/">
+     <Home />
+    </Route>
 
-        <Route exact path='/music'>
-          <Music />
-        </Route>
+    <Route exact path="/music">
+     <Music />
+    </Route>
 
-        <Route exact path='/contact'>
-          <Contact />
-        </Route>
+    <Route exact path="/contact">
+     <Contact />
+    </Route>
 
-        <Route exact path='/about'>
-          <About />
-        </Route>
+    <Route exact path="/about">
+     <About />
+    </Route>
 
-        <Route exact path='/admin'>
-          <Admin />
-        </Route>
+    <Route exact path="/admin">
+     <Admin />
+    </Route>
 
-        <Route exact path='/dashboard'>
-          <Dashboard />
-        </Route>
-        
-      </Switch>
+    <Route exact path="/dashboard">
+     <Dashboard />
+    </Route>
 
-      {!changeNav && <Footer/> }
-    </>
-  )
+    
+
+   </Switch>
+
+   {!changeNav && <Footer />}
+  </>
+ )
 }
 export default App

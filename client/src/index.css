@@ -11,6 +11,5 @@
     height:100% !important;
     margin: 0px !important;
 }
-.rhap_main-controls{
-    display:none !important;
+.audio-player .rhap_main-controls{
 }
