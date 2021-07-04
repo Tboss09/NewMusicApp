@@ -52,7 +52,7 @@ export default function Component() {
    formDetails.audio === undefined && setSongUploadError(true)
    if (formDetails.audio !== undefined && data) {
     axios
-     .post('/api/v1/music', { formDetails })
+     .post('/upload', { formDetails })
      .then(({ res }) => console.log(res))
      .catch(err => console.log(err))
    }

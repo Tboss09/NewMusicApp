@@ -22,6 +22,7 @@ import { HiCode } from 'react-icons/hi'
 import { MdHome, MdKeyboardArrowRight } from 'react-icons/md'
 import { useParams, NavLink as Navigate } from 'react-router-dom'
 import UploadSong from '../../Upload/UploadNewSong'
+import UploadTest from '../../Upload/UploadTest'
 
 export default function Swibc() {
  const sidebar = useDisclosure()
@@ -180,7 +181,8 @@ export default function Swibc() {
     </Flex>
 
     <Box as="main" p="4">
-     {location.upload && <UploadSong />}
+     {/*  {location.upload && <UploadSong />} */}
+    {location.upload && <UploadTest />} 
      {location.home && 'Home here'}
     </Box>
    </Box>

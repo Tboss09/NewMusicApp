@@ -1,19 +1,17 @@
 import mongoose from 'mongoose'
 const { Schema } = mongoose
 
+const musicUpload = {
+ songName: { type: String, required: true },
+ author: { type: String, required: true },
+ filename: { type: String, required: true },
+ fileId: { type: String, required: true },
+ amountOfDownload: { type: Number, default: 0 },
+ createdAt: {default: Date.now(),type: Date,},
+}
 
-const dataForUpload = {
-  name: { type: String, required: true },
-  author: { type: String, required: true },
-  upLoadSong: { type: String, required: true },
-  songImg: { type: String, required: true },
-  amountOfDownloads: { type: String, default: 0 },
- },
-
-const Songs= new Schema({
-    songs: [dataForUpload],
- amountOfDownloads: { type: String, default: 0 }
-   })
-
-const SongSchema = mongoose.model('songsUpload', Songs)
-export default SongSchema
+const Songs = new Schema({
+ song: [musicUpload],
+})
+const UploadSong = mongoose.model('songUpload', Songs)
+export default UploadSong

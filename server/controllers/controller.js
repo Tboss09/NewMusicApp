@@ -1,9 +1,7 @@
 import passport from 'passport'
 import jwt from 'jsonwebtoken'
 import RecordLabel from '../Schema/Schema.js'
-import multer from 'multer'
-import GridFsStorage from 'multer-gridfs-storage'
-import Grid from 'gridfs-stream'
+import SongSchema from '../Schema/SongSchema.js'
 
 export const getAllMusicFiles = (req, res) => {
  res.status(200).json({ data: 'Hi' })
@@ -35,8 +33,6 @@ export const SignUpAdmin = (req, res) => {
 }
 
 export const AdminLogin = (req, res) => {
- console.log(req.query)
-
  if (!req.body.username) {
   res.status(404).json({ success: false, message: 'Username was not given' })
   console.log('Username not given')
@@ -83,6 +79,6 @@ export const AdminLogin = (req, res) => {
 
 // Create new Song
 export const CreateNewSong = (req, res) => {
- console.log(req.body)
- 
+ const data = req.body
+ console.log(data)
 }

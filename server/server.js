@@ -1,29 +1,30 @@
 import cors from 'cors'
 import dotenv from 'dotenv'
 import express from 'express'
-import path from 'path'
 import mongoose from 'mongoose'
 import passport from 'passport'
-import LocalPassport from 'passport-local'
 import multer from 'multer'
-import GridFsStorage from 'multer-gridfs-storage'
-import Grid from 'gridfs-stream'
-
+import path from 'path'
+import { GridFsStorage } from 'multer-gridfs-storage'
+import crypto from 'crypto'
+import LocalPassport from 'passport-local'
 import PostRoute from './routes/PostRoute.js'
 import route from './routes/route.js'
 import RecordLabel from './Schema/Schema.js'
-
 // server initialisation
 const app = express()
-const port = 8000 || process.env.PORT
-// Config
+const port = 8000 || process.env.PORT // Config
 dotenv.config()
+
 app.use(cors())
-app.use(express.json())
+
+app.use(express.json({ limit: '80mb', extended: true }))
+app.use(
+ express.urlencoded({ limit: '80mb', extended: true, parameterLimit: 80000 })
+)
 
 app.use(passport.initialize())
 app.use(passport.session())
-app.use(express.urlencoded({ extended: false }))
 
 // passport Config
 passport.serializeUser(RecordLabel.serializeUser())
@@ -45,46 +46,84 @@ mongoose.connect(process.env.MONGODB_URI, {
 })
 
 const db = mongoose.connection
+let gfs
 
 app.use('/api/v1', route)
 // Post request
 app.use('/api/v1/', PostRoute)
 
-let gfs
-db.on('error', console.error.bind(console, 'connection error:'))
+const storage = new GridFsStorage({
+ url: process.env.MONGODB_URI,
+ file: (req, file) => {
+  return new Promise((resolve, reject) => {
+   crypto.randomBytes(16, (err, buf) => {
+    if (err) {
+     return reject(err)
+    }
+    const filename = buf.toString('hex') + path.extname(file.originalname)
+
+    const fileInfo = {
+     filename: filename,
+     bucketName: 'uploads',
+    }
+    resolve(fileInfo)
+   })
+  })
+ },
+})
+const upload = multer({ storage })
 
 db.once('open', function () {
- console.log('Database succesfully connected')
- gfs = Grid(db.db, mongoose.mongo)
- gfs.collection('uploads')
-
- //  create a Storage Engine engine
- let storage =  GridFsStorage({
-  url: process.env.MONGODB_URI,
-  file: (req, file) => {
-   return new Promise((resolve, reject) => {
-    crypto.randomBytes(16, (err, buf) => {
-     if (err) {
-      return reject(err)
-     }
-     const filename = buf.toString('hex') + path.extname(file.originalname)
-     const fileInfo = {
-      filename: filename,
-      bucketName: 'uploads',
-     }
-     resolve(fileInfo)
-    })
-   })
-  },
+ gfs = new mongoose.mongo.GridFSBucket(db.db, {
+  bucketName: 'uploads',
  })
- const upload = multer({ storage })
- //  create a Storage Engine engine
+ app.post('/upload', upload.array('file'), async (req, res, next) => {
+  upload.any()
+  const files = await req.files
+  const body = await req.body
 
- app.post('/upload', upload.single('file-upload'), (req, res) => {
-  res.json({ file: req.file })
+  console.log(body, files)
+
+  if (files !== undefined) {
+   const file = files.map(file => {
+    return file.filename
+   })
+
+   
+   const body = await req.body
+   console.log(files, body, file)
+  }
+ })
+
+ app.get('/upload/:filename', (req, res, next) => {
+     const fileName = req.params.filename
+     gfs.find({ filename: fileName}).toArray((err, files) => {
+        if (!files[0] || files.length === 0) {
+         return res.status(400).json({
+          success: false,
+          message: 'No files',
+         })
+        }
+        gfs.openDownloadStreamByName(fileName).pipe(res)
+       })
+       
+  
+ })
+
+//get all files
+ app.get('/files', (req, res, next) => {
+  console.log('/files')
+  gfs.find().toArray((err, files) => {
+   res.status(200).json({
+    success: true,
+    files,
+   })
+  })
  })
 
  app.listen(port, () => {
   console.log(`Server Listening at port ${port}`)
  })
+ console.log('Database succesfully connected')
 })
+db.on('error', console.error.bind(console, 'connection error:'))
