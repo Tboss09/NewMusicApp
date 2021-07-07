@@ -20,9 +20,8 @@ import { FaBell, FaRss } from 'react-icons/fa'
 import { FiMenu, FiSearch, FiUploadCloud } from 'react-icons/fi'
 import { HiCode } from 'react-icons/hi'
 import { MdHome, MdKeyboardArrowRight } from 'react-icons/md'
-import { useParams, NavLink as Navigate } from 'react-router-dom'
+import { NavLink as Navigate, useParams } from 'react-router-dom'
 import UploadSong from '../../Upload/UploadNewSong'
-import UploadTest from '../../Upload/UploadTest'
 
 export default function Swibc() {
  const sidebar = useDisclosure()
@@ -47,7 +46,6 @@ export default function Swibc() {
    })
   }
  }, [params])
-
 
  const NavItem = props => {
   const { icon, children, ...rest } = props
@@ -108,7 +106,9 @@ export default function Swibc() {
     color="gray.600"
     aria-label="Main Navigation"
    >
-    <NavItem icon={MdHome}  as={Navigate} to="/dashboard/home">Home</NavItem>
+    <NavItem icon={MdHome} as={Navigate} to="/dashboard/home">
+     Home
+    </NavItem>
     <NavItem icon={FaRss}>Articles</NavItem>
     <NavItem icon={FiUploadCloud} as={Navigate} to="/dashboard/uploadsong">
      Upload New Song
@@ -138,10 +138,15 @@ export default function Swibc() {
  return (
   <Box as="section" bg={useColorModeValue('gray.50', 'gray.700')} minH="100vh">
    <SidebarContent display={{ base: 'none', md: 'unset' }} />
-   <Drawer isOpen={sidebar.isOpen} onClose={sidebar.onClose} placement="left">
+   <Drawer
+    isOpen={sidebar.isOpen}
+    onClose={sidebar.onClose}
+    placement="left"
+    size="sm"
+   >
     <DrawerOverlay />
     <DrawerContent>
-     <SidebarContent w="full" borderRight="none" />
+     <SidebarContent borderRight="none" />
     </DrawerContent>
    </Drawer>
    <Box ml={{ base: 0, md: 60 }} transition=".3s ease">
@@ -181,8 +186,8 @@ export default function Swibc() {
     </Flex>
 
     <Box as="main" p="4">
-     {/*  {location.upload && <UploadSong />} */}
-    {location.upload && <UploadTest />} 
+     {location.upload && <UploadSong />}
+     {/* {location.upload && <UploadTest />}  */}
      {location.home && 'Home here'}
     </Box>
    </Box>

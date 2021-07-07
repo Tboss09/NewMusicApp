@@ -1,19 +1,20 @@
 import cors from 'cors'
 import dotenv from 'dotenv'
 import express from 'express'
+import fs from 'fs'
 import mongoose from 'mongoose'
-import passport from 'passport'
 import multer from 'multer'
-import path from 'path'
 import { GridFsStorage } from 'multer-gridfs-storage'
-import crypto from 'crypto'
+import passport from 'passport'
 import LocalPassport from 'passport-local'
+import path from 'path'
 import PostRoute from './routes/PostRoute.js'
 import route from './routes/route.js'
 import RecordLabel from './Schema/Schema.js'
+import SongSchema from './Schema/SongSchema.js'
 // server initialisation
 const app = express()
-const port = 8000 || process.env.PORT // Config
+const port = process.env.PORT || 4000 // Config
 dotenv.config()
 
 app.use(cors())
@@ -22,7 +23,10 @@ app.use(express.json({ limit: '80mb', extended: true }))
 app.use(
  express.urlencoded({ limit: '80mb', extended: true, parameterLimit: 80000 })
 )
-
+app.use((req, res, next) => {
+ res.header('Access-Control-Allow-Origin', '*')
+ next()
+})
 app.use(passport.initialize())
 app.use(passport.session())
 
@@ -39,7 +43,7 @@ passport.deserializeUser(RecordLabel.deserializeUser())
 // Login config
 
 // Database initialization and connection
-mongoose.connect(process.env.MONGODB_URI, {
+const promise = mongoose.connect(process.env.MONGODB_URI, {
  useNewUrlParser: true,
  useUnifiedTopology: true,
  useFindAndModify: false,
@@ -47,25 +51,30 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 const db = mongoose.connection
 let gfs
+let newIdForSong
 
 app.use('/api/v1', route)
 // Post request
 app.use('/api/v1/', PostRoute)
 
 const storage = new GridFsStorage({
- url: process.env.MONGODB_URI,
+ db: promise,
  file: (req, file) => {
   return new Promise((resolve, reject) => {
-   crypto.randomBytes(16, (err, buf) => {
+   fs.readFile('file.txt', 'utf-8', (err, data) => {
     if (err) {
      return reject(err)
     }
-    const filename = buf.toString('hex') + path.extname(file.originalname)
 
+    const newData = JSON.parse(data)
+    const { author, songName } = newData
+
+    const filename = `${songName}_${author}` + path.extname(file.originalname)
     const fileInfo = {
      filename: filename,
-     bucketName: 'uploads',
+     bucketName: 'RecordLabelSong',
     }
+
     resolve(fileInfo)
    })
   })
@@ -74,56 +83,122 @@ const storage = new GridFsStorage({
 const upload = multer({ storage })
 
 db.once('open', function () {
+ console.log('Database successfully connected')
  gfs = new mongoose.mongo.GridFSBucket(db.db, {
-  bucketName: 'uploads',
+  bucketName: 'RecordLabelSong',
  })
- app.post('/upload', upload.array('file'), async (req, res, next) => {
-  upload.any()
-  const files = await req.files
-  const body = await req.body
 
-  console.log(body, files)
+ app.get('/', (req, res) => {
+  res.send('Hi there')
+ })
+ //  Post User song and author
+ app.post('/upload', (req, res) => {
+  const { author, songName } = req.body
+  const song = { author: author, songName: songName, image: '', song: '' }
+
+  SongSchema.findOneAndUpdate(
+   { _id: '60e309d2fd520d25402ee3fa' },
+   { $push: { songs: song } },
+   { new: true },
+
+   function (error, success) {
+    if (success) {
+     res.status(200).json({ success: true, message: 'Song successfully added' })
+
+     SongSchema.findById('60e309d2fd520d25402ee3fa')
+      .select({ songs: { $slice: -1 } })
+      .exec((err, doc) => {
+       newIdForSong = doc.songs[0]._id
+       console.log(newIdForSong)
+       const songProfile = {
+        songName: req.body.songName,
+        author: req.body.author,
+        id: doc.songs[0]._id,
+       }
+       fs.writeFile('file.txt', JSON.stringify(songProfile), err => {
+        err && console.log(err)
+        console.log('file create success')
+       })
+      })
+
+     return
+    } else {
+     console.log(err)
+     res.status(400).json({ success: true, message: `Error:${error}` })
+    }
+   }
+  )
+ })
+
+ app.post('/upload/song', upload.array('file', 3), (req, res, next) => {
+  const files = req.files
+  console.log(req.body, files)
 
   if (files !== undefined) {
    const file = files.map(file => {
     return file.filename
    })
 
-   
-   const body = await req.body
-   console.log(files, body, file)
+   fs.readFile('file.txt', 'utf-8', (err, data) => {
+    const id = JSON.parse(data).id
+    console.log(id)
+    const newFile = {
+     'songs.$.image': file[1],
+     'songs.$.song': file[0],
+    }
+    console.log(file[1])
+    SongSchema.update(
+     { 'songs._id': mongoose.Types.ObjectId(`${id}`) },
+     {
+      $set: {
+       'songs.$.image': file[1],
+       'songs.$.song': file[0],
+      },
+     },
+     (err, success) => {
+      if (err) {
+       res.status(400).json({ success: false, message: `Error:${err}` })
+      }
+      res
+       .status(201)
+       .json({ success: false, message: `Song was successfully added` })
+      console.log(err, success)
+     }
+    )
+   })
   }
  })
 
- app.get('/upload/:filename', (req, res, next) => {
-     const fileName = req.params.filename
-     gfs.find({ filename: fileName}).toArray((err, files) => {
-        if (!files[0] || files.length === 0) {
-         return res.status(400).json({
-          success: false,
-          message: 'No files',
-         })
-        }
-        gfs.openDownloadStreamByName(fileName).pipe(res)
-       })
-       
-  
+ app.get('/upload/:filename', (req, res) => {
+  const fileName = req.params.filename
+  console.log(fileName)
+  gfs.find({ filename: fileName }).toArray((err, files) => {
+   if (!files[0] || files.length === 0) {
+    return res.status(400).json({
+     success: false,
+     message: 'No files',
+    })
+   } else {
+    gfs.openDownloadStreamByName(fileName).pipe(res)
+   }
+  })
  })
 
-//get all files
- app.get('/files', (req, res, next) => {
-  console.log('/files')
-  gfs.find().toArray((err, files) => {
-   res.status(200).json({
-    success: true,
-    files,
+ //get all files
+ app.get('/allSongs', (req, res) => {
+  SongSchema.find({})
+   .then(data => {
+    res.status(200).json({ success: true, message: data })
    })
-  })
+   .catch(err => {
+    res.status(404).json({ success: false, message: err })
+    console.log(err)
+   })
  })
 
  app.listen(port, () => {
   console.log(`Server Listening at port ${port}`)
  })
- console.log('Database succesfully connected')
 })
+
 db.on('error', console.error.bind(console, 'connection error:'))

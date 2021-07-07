@@ -1,4 +1,3 @@
-import axios from '../../axios/axiosConfig'
 import {
  Box,
  Button,
@@ -11,378 +10,348 @@ import {
  Icon,
  Image,
  Input,
- InputGroup,
  SimpleGrid,
  Stack,
  Text,
  useColorModeValue,
- useToast,
  VisuallyHidden,
 } from '@chakra-ui/react'
-import React from 'react'
-import FileBase64 from 'react-file-base64'
-import AudioPlayer from 'react-h5-audio-player'
+import React, { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
-import { CgMusic } from 'react-icons/cg'
-import { RiImageAddLine } from 'react-icons/ri'
+import { GiMusicalNotes } from 'react-icons/gi'
+import useState from 'react-usestateref'
+import axios from '../../axios/axiosConfig'
+import AudioPlayer from 'react-h5-audio-player'
 
 export default function Component() {
- const toast = useToast()
- const [songUploadError, setSongUploadError] = React.useState(false)
- const initialState = {
-  songName: '',
-  author: '',
-  audio: '',
-  audioCoverImage: '',
- }
- const [newSong, setNewSong] = React.useState({ initialState })
 
- //  Validation of forms
+ const [filePreview, setFilePreview, newFile] = useState({
+  img: null,
+  audio: null,
+ })
+ useEffect(() => {
+  register('song', { required: 'Audio file is required' })
+  register('image', { required: 'Image file is required' })
+ }, [])
+
  const {
   register,
   handleSubmit,
   setError,
+  setValue,
+  clearErrors,
   formState: { errors },
  } = useForm()
-
- const onSubmit = React.useCallback(
-  data => {
-   const { audio, audioCoverImage } = newSong
-   const formDetails = { ...data, audio, audioCoverImage }
-   formDetails.audio === undefined && setSongUploadError(true)
-   if (formDetails.audio !== undefined && data) {
-    axios
-     .post('/upload', { formDetails })
-     .then(({ res }) => console.log(res))
-     .catch(err => console.log(err))
+ const onSubmit = form => {
+  //  If user is done submitting
+  if (form) {
+   const { author,songName } = form
+   let data_array = []
+   data_array.push(form.song, form.image)
+   console.log(data_array)
+   const data = new FormData()
+   for (var x = 0; x < data_array.length; x++) {
+    data.append('file', data_array[x])
    }
-  },
-  
-  [newSong]
- )
 
- 
- //  THis handles Images Upload
- const handleImageUpload = file => {
-  const imageSize = parseInt(file.size)
-  // /if images size is bigger than 8mb, show a warning
-  if (imageSize >= 8000) {
-   toast({
-    title: 'Image Size Limit exceeded',
-    description: 'Image uploaded must not be greater than 8mb',
-    status: 'warning',
-    duration: 5000,
-    position: 'top-right',
-    isClosable: true,
-   })
-  } else if (parseInt(file.size) <= 8000) {
-   setNewSong({ ...newSong, audioCoverImage: file.base64 })
-   setSongUploadError(false)
-  }
- }
-
- //  THis handles Song Upload
- const handleSongUpload = song => {
-  const songSize = parseInt(song.size)
-  if (songSize >= 10000) {
-   toast({
-    title: 'Song Size Limit exceeded',
-    description: 'Song uploaded must be less than 10mb',
-    status: 'warning',
-    duration: 5000,
-    position: 'top-right',
-    isClosable: true,
-   })
-  } else if (songSize <= 10000) {
-   setSongUploadError(false)
-   setNewSong({ ...newSong, audio: song.base64 })
+   axios
+    .post('upload', { songName, author })
+    .then(res => {
+     console.log(res)
+     axios.post('upload/song', data, {
+      headers: {
+       'Content-Type': 'multipart/form-data',
+      },
+     })
+    })
+    .then(res => {})
+    .catch(err => {
+     console.log('Error :', err)
+    })
   }
  }
 
  return (
-  <Box bg={useColorModeValue('gray.200', 'inherit')} p={10} pt={12}>
-   <Box>
-    <SimpleGrid display={{ base: 'initial', md: 'grid' }} maxW="md" mx="auto">
-     <GridItem mt={[5, null, 0]} colSpan={{ md: 2 }}>
+  <Box
+   contentEditable={false}
+   bg={useColorModeValue('gray.50', 'inherit')}
+   maxW={{ base: 'initial', md: '8xl' }}
+   mx={{ base: 'initial', md: 'auto' }}
+  >
+   <Box w={{ base: 'full', md: 'full', lg: '80%' }} mx="auto">
+    <Box
+     w="full"
+     display={{ base: 'initial' }}
+     justifyContent={{ base: 'initial', md: 'center' }}
+    >
+     <Box mt={[5, null, 0]}>
       <chakra.form
-       shadow="lg"
+       onSubmit={handleSubmit(onSubmit)}
+       shadow="base"
        rounded={[null, 'md']}
        overflow={{ sm: 'hidden' }}
-       onSubmit={handleSubmit(onSubmit)}
       >
        <Stack
         px={4}
         py={5}
         bg={useColorModeValue('white', 'gray.700')}
-        spacing={6}
+        spacing={12}
         p={{ sm: 6 }}
        >
-        <SimpleGrid columns={3} spacing={6}>
+        <SimpleGrid columns={6} spacing={6}>
          <FormControl
           as={GridItem}
-          colSpan={[3, 2]}
+          colSpan={[6, 3]}
           isInvalid={errors.songName}
          >
           <FormLabel
-           fontSize="md"
-           fontWeight="sm"
+           fontSize="base"
+           fontWeight="500"
            color={useColorModeValue('gray.700', 'gray.50')}
           >
-           Name Of Song
-          </FormLabel>
-          <InputGroup size="sm">
-           <Input
-            type="text"
-            {...register('songName', {
-             required: true,
-             minLength: 4,
-             maxLength: 20,
-            })}
-            placeholder="Eg, Chioma my lover"
-            focusBorderColor="brand.400"
-            rounded="md"
-           />
-          </InputGroup>
-          <FormErrorMessage>
-           {errors.songName && 'Song title needs to provided'}
-          </FormErrorMessage>
-         </FormControl>
-        </SimpleGrid>
-
-        {/* Upload Songs Form here */}
-        <FormControl maxW="md" mx="auto" isInvalid={songUploadError}>
-         <FormLabel
-          fontSize="md"
-          fontWeight="md"
-          color={useColorModeValue('gray.700', 'gray.50')}
-         >
-          Song Upload:
-         </FormLabel>
-         <Flex
-          mt={1}
-          justify="center"
-          px={6}
-          pt={5}
-          pb={6}
-          borderWidth={2}
-          borderColor={useColorModeValue('gray.300', 'gray.500')}
-          borderStyle="dashed"
-          rounded="md"
-         >
-          <Stack spacing={1} align="center" w="100%">
-           <Flex
-            alignSelf="center"
-            w="100%"
-            justify="center"
-            flexDir="column"
-            h="32"
-            align="center"
-           >
-            {!newSong.audio ? (
-             <Icon as={CgMusic} w="32" h="20" color="blackAlpha.500" />
-            ) : (
-             <Box>
-              <Box
-               as={AudioPlayer}
-               align="center"
-               w="80"
-               showJumpControls={false}
-               showSkipControls={false}
-               autoPlay={false}
-               defaultDuration="Loading"
-               customVolumeControls={[]}
-               layout="horizontal-reverse"
-               bg="transparent"
-               customAdditionalControls={[]}
-               className="audio-player"
-               src={newSong.audio}
-              />
-             </Box>
-            )}
-           </Flex>
-
-           <Flex
-            fontSize="md"
-            color={useColorModeValue('gray.600', 'gray.400')}
-            alignItems="baseline"
-           >
-            <Flex flexDir="column">
-             <chakra.label
-              htmlFor="song-upload"
-              cursor="pointer"
-              alignSelf="center"
-              rounded="md"
-              fontSize="md"
-              mr="-10"
-              pos="relative"
-             >
-              <Box>
-               <Button
-                my="2"
-                as="span"
-                size="lg"
-                w="80%"
-                mx="auto"
-                variant="outline"
-                color="blue.700"
-                _hover={[
-                 { bg: 'blue.900' },
-                 { color: 'white' },
-                 { variant: 'outline' },
-                ]}
-               >
-                Browse File
-               </Button>
-              </Box>
-              <VisuallyHidden>
-               <Input
-                as={FileBase64}
-                id="song-upload"
-                required={true}
-                accept="audio/*"
-                multiple={false}
-                onDone={handleSongUpload}
-                type="file"
-               />
-              </VisuallyHidden>
-             </chakra.label>
-            </Flex>
-           </Flex>
-           <Text fontSize="xs" color={useColorModeValue('gray.500', 'gray.50')}>
-            Mp3, Mp4 files not less than 8mb
-           </Text>
-          </Stack>
-         </Flex>
-         <FormErrorMessage>
-          {songUploadError && 'Audio uploading is compulsory'}
-         </FormErrorMessage>
-        </FormControl>
-        {/* Upload Songs Form here */}
-
-        <div>
-         <FormControl
-          isInvalid={errors.songAuthor}
-          id="songAuthor"
-          mt={1}
-          as={GridItem}
-          colSpan={[3, 2]}
-         >
-          <FormLabel
-           fontSize="md"
-           fontWeight="md"
-           color={useColorModeValue('gray.700', 'gray.50')}
-          >
-           Song Author:
+           Song Name
           </FormLabel>
           <Input
-           placeholder="eg, abm music"
-           mt={1}
-           rows={3}
-           shadow="sm"
-           focusBorderColor="brand.400"
-           fontSize={{ sm: 'sm' }}
+           size="md"
            type="text"
-           {...register('songAuthor', {
+           name="first_name"
+           {...register('songName', {
             required: true,
             minLength: 4,
             maxLength: 20,
            })}
+           placeholder="Eg, Chioma my lover"
+           mt={1}
+           focusBorderColor="blue.400"
+           shadow="sm"
+           w="full"
+           rounded="md"
           />
           <FormErrorMessage>
-           {errors.songAuthor && 'Song author needs to be provided'}
+           {errors.songName && 'Value must be up to 4 Letters'}
           </FormErrorMessage>
          </FormControl>
-        </div>
 
-        <FormControl maxW="lg" mx="auto">
-         <FormLabel
-          fontSize="md"
-          fontWeight="md"
-          color={useColorModeValue('gray.700', 'gray.50')}
-         >
-          Cover image (optional):
-         </FormLabel>
-         <Flex
-          mt={1}
-          justify="center"
-          px={6}
-          pt={5}
-          pb={6}
-          borderWidth={2}
-          borderColor={useColorModeValue('gray.300', 'gray.500')}
-          borderStyle="dashed"
-          rounded="md"
-         >
-          <Stack spacing={1} align="center">
-           <Flex alignSelf="center" h="32" w="100%" align="center">
-            {!newSong.audioCoverImage ? (
-             <Icon as={RiImageAddLine} w="32" h="20" color="blackAlpha.500" />
+         <FormControl as={GridItem} colSpan={[6, 3]} isInvalid={errors.author}>
+          <FormLabel
+           fontSize="base"
+           fontWeight="500"
+           color={useColorModeValue('gray.700', 'gray.50')}
+          >
+           Song Author
+          </FormLabel>
+          <Input
+           type="text"
+           name="last_name"
+           {...register('author', {
+            required: 'Name of author is required',
+            minLength: 4,
+            maxLength: 20,
+           })}
+           mt={1}
+           focusBorderColor="blue.400"
+           shadow="sm"
+           size="md"
+           w="full"
+           rounded="md"
+          />
+          <FormErrorMessage>
+           {errors.author && 'Value must be up to 4 Letters'}
+          </FormErrorMessage>
+         </FormControl>
+        </SimpleGrid>
+        <Stack direction={['column', 'row']} spacing={12}>
+         {/*Image of song here  */}
+         <FormControl isInvalid={errors.image}>
+          <FormLabel
+           fontSize="lg"
+           fontWeight="500"
+           color={useColorModeValue('gray.700', 'gray.50')}
+          >
+           Song Image
+          </FormLabel>
+          <Flex alignItems="center" mt={1}>
+           <Image
+            boxSize={'40'}
+            rounded="none"
+            objectFit="cover"
+            src={newFile.current.img}
+            fallbackSrc="https://via.placeholder.com/200"
+            bg={useColorModeValue('gray.100', 'gray.800')}
+           />
+           <chakra.label
+            htmlFor="file-upload"
+            pl="4"
+            cursor="pointer"
+            rounded="md"
+            fontSize="md"
+            color={useColorModeValue('blue.600', 'blue.200')}
+            pos="relative"
+            _hover={{
+             color: useColorModeValue('blue.400', 'blue.300'),
+            }}
+           >
+            <Button as="span" variant="outline">
+             UPLOAD
+            </Button>
+            <VisuallyHidden>
+             <input
+              id="file-upload"
+              accept="image/png, image/jpeg"
+              onChange={e => {
+               const value = e.target.files[0]
+               const pattern = /image-*/
+               if (!value || value === 0) {
+                setError('image', {
+                 type: 'manual',
+                 message: 'Please upload a image',
+                })
+                return
+               }
+               if (!value.type.match(pattern)) {
+                setError('image', {
+                 type: 'manual',
+                 message: 'Only images ending in PNG, JPG are accepted  ',
+                })
+                return
+               } else {
+
+                setFilePreview({
+                 ...filePreview,
+                 img: URL.createObjectURL(value),
+                })
+                setValue('image', value)
+                clearErrors('image')
+               }
+              }}
+              name="file"
+              type="file"
+             />
+            </VisuallyHidden>
+           </chakra.label>
+          </Flex>
+          {errors.image && (
+           <FormErrorMessage>{errors.image.message}</FormErrorMessage>
+          )}
+         </FormControl>
+         {/*Image of song here  */}
+
+         <FormControl isInvalid={errors.song}>
+          <FormLabel
+           fontSize="md"
+           fontWeight="500"
+           color={useColorModeValue('gray.700', 'gray.50')}
+          >
+           Song
+          </FormLabel>
+          <Flex
+           mt={1}
+           justify="center"
+           px={6}
+           pt={5}
+           pb={6}
+           borderWidth={2}
+           borderColor={useColorModeValue('gray.300', 'gray.500')}
+           borderStyle="dashed"
+           rounded="md"
+          >
+           <Stack spacing={1} textAlign="center" w="full">
+            {newFile.current.audio ? (
+             <Box
+              as={AudioPlayer}
+              width="full"
+              showJumpControls={false}
+              showSkipControls={false}
+              autoPlayAfterSrcChange={false}
+              layout="horizontal-reverse"
+              customVolumeControls={[]}
+              customAdditionalControls={[]}
+              src={newFile.current.audio}
+             />
             ) : (
-             <Image
-              src={newSong.audioCoverImage}
-              shadow="lg"
-              w="40%"
+             <Icon
               mx="auto"
-              h="full"
-              objectFit="cover"
-              fallbackSrc="https://c.tenor.com/I6kN-6X7nhAAAAAj/loading-buffering.gif"
+              boxSize={12}
+              color="gray.400"
+              aria-hidden="true"
+              as={GiMusicalNotes}
              />
             )}
-           </Flex>
-
-           <Flex
-            fontSize="md"
-            color={useColorModeValue('gray.600', 'gray.400')}
-            alignItems="baseline"
-           >
-            <Flex flexDir="column">
+            <Flex
+             fontSize="sm"
+             color={useColorModeValue('gray.600', 'gray.400')}
+             alignItems="center"
+             justifyContent="center"
+            >
              <chakra.label
-              htmlFor="image-upload"
+              htmlFor="song-upload"
               cursor="pointer"
-              alignSelf="center"
               rounded="md"
               fontSize="md"
-              mr="-10"
-              color={useColorModeValue('brand.600', 'brand.200')}
+              color={useColorModeValue('blue.600', 'blue.200')}
               pos="relative"
               _hover={{
-               color: useColorModeValue('brand.400', 'brand.300'),
+               color: useColorModeValue('blue.400', 'blue.300'),
               }}
              >
-              <Box>
-               <Button
-                mt="6"
-                mb="2"
-                as="span"
-                size="lg"
-                w="80%"
-                mx="auto"
-                variant="outline"
-                color="blue.700"
-                _hover={[{ bg: 'blue.900' }, { color: 'white' }]}
-               >
-                Browse File
-               </Button>
-              </Box>
+              <Button
+               variant="ghost"
+               as="span"
+               fontWeight="500"
+               textTransform="uppercase"
+              >
+               Upload a Song
+              </Button>
               <VisuallyHidden>
-               <Input
-                as={FileBase64}
-                id="image-upload"
-                accept="image/*"
+               <input
+                id="song-upload"
+                onChange={e => {
+                 const value = e.target.files[0]
+                 const pattern = /audio-*/
+                 if (!value || value === 0) {
+                  setError('song', {
+                   type: 'manual',
+                   message: 'Please upload a audio',
+                  })
+                  return
+                 }
+                 if (!value.type.match(pattern)) {
+                  setError('song', {
+                   type: 'manual',
+                   message:
+                    'Only Audio file with Extension mp3,mp4 are accepted',
+                  })
+                  return
+                 } else {
+                  setFilePreview({
+                   ...filePreview,
+                   audio: URL.createObjectURL(value),
+                  })
+                  setValue('song', value)
+                  clearErrors('song')
+                 }
+                }}
+                name="file"
+                accept="audio/*"
                 multiple={false}
-                onDone={handleImageUpload}
                 type="file"
                />
               </VisuallyHidden>
              </chakra.label>
             </Flex>
-           </Flex>
-           <Text fontSize="xs" color={useColorModeValue('gray.500', 'gray.50')}>
-            PNG, JPG up to 8MB
-           </Text>
-          </Stack>
-         </Flex>
-        </FormControl>
+            <Text
+             fontSize="xs"
+             color={useColorModeValue('gray.500', 'gray.50')}
+            >
+             MP3, MP4 up to 10MB
+            </Text>
+           </Stack>
+          </Flex>
+          {errors.song && (
+           <FormErrorMessage>{errors.song.message}</FormErrorMessage>
+          )}
+         </FormControl>
+        </Stack>
        </Stack>
 
        <Box
@@ -393,53 +362,16 @@ export default function Component() {
        >
         <Button
          type="submit"
-         color="#fff"
-         bg="blue.700"
-         _focus={{ bg: 'blue.800' }}
-         _active={{ bg: 'blue.900' }}
-         _hover={{ bg: 'blue.800' }}
-         h="12"
+         colorScheme="teal"
+         _focus={{ shadow: '' }}
          fontWeight="md"
         >
-         Upload Song
+         Upload
         </Button>
        </Box>
       </chakra.form>
-     </GridItem>
-    </SimpleGrid>
-   </Box>
-   <Box visibility={{ base: 'hidden', sm: 'visible' }} aria-hidden="true">
-    <Box py={5}>
-     <Box
-      borderTop="solid 1px"
-      borderTopColor={useColorModeValue('gray.200', 'whiteAlpha.200')}
-     ></Box>
+     </Box>
     </Box>
-   </Box>
-
-   <Box mt={[10, 0]}>
-    <SimpleGrid
-     display={{ base: 'initial', md: 'grid' }}
-     columns={{ md: 3 }}
-     spacing={{ md: 6 }}
-    ></SimpleGrid>
-   </Box>
-
-   <Box visibility={{ base: 'hidden', sm: 'visible' }} aria-hidden="true">
-    <Box py={5}>
-     <Box
-      borderTop="solid 1px"
-      borderTopColor={useColorModeValue('gray.200', 'whiteAlpha.200')}
-     ></Box>
-    </Box>
-   </Box>
-
-   <Box mt={[10, 0]}>
-    <SimpleGrid
-     display={{ base: 'initial', md: 'grid' }}
-     columns={{ md: 3 }}
-     spacing={{ md: 6 }}
-    ></SimpleGrid>
    </Box>
   </Box>
  )

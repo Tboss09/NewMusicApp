@@ -8,6 +8,8 @@ import {
  FormLabel,
  Input,
 } from '@chakra-ui/react'
+import jwt_decode from 'jwt-decode'
+import useLocalStorage from 'react-use-localstorage'
 import { Redirect } from 'react-router-dom'
 import { useToast } from '@chakra-ui/react'
 import axios from '../../../axios/axiosConfig'
@@ -19,6 +21,7 @@ import './login.css'
 
 const Login = () => {
  const toast = useToast()
+ const [item, setItem] = useLocalStorage('token', '')
  const {
   register,
   handleSubmit,
@@ -30,14 +33,16 @@ const Login = () => {
   if (data) {
    const { username, password } = data
    axios
-    .post('/api/v1/admin', {
+    .post('/admin', {
      username,
      password,
     })
     .then(res => {
+     setItem(res.data.token)
      setRedirectToDashBoard(true)
     })
     .catch(err => {
+     console.log(err)
      toast({
       title: 'Error!.',
       description: `${err.response.data}`,

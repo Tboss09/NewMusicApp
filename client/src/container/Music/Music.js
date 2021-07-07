@@ -4,75 +4,18 @@ import React from 'react'
 import uniqid from 'uniqid'
 import ImageOne from '../../components/assets/img/bg1.jpg'
 import MusicBox from './MusicBox/MusicBox'
+import { useQuery } from 'react-query'
 
 const Music = () => {
- const dummyArray = [
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
-  {
-   uniq: uniqid(),
-  },
- ]
-
- const [dummyArrayForMusic, setDummyArrayForMusic] = React.useState(dummyArray)
+ const { isLoading, error, data } = useQuery('allSongs', () =>
+  fetch('http://localhost:4000/allSongs').then(res => res.json())
+ )
+ if (isLoading) {
+  return <div>Is loading</div>
+ }
+ if (error) {
+  return <div>error</div>
+ }
 
  return (
   // Grid layout for the Music showcase
@@ -88,14 +31,7 @@ const Music = () => {
    justifyContent="center"
   >
    {/* Arrays of music folders here */}
-   {dummyArrayForMusic.map((user, index) => (
-    <MusicBox
-     image={ImageOne}
-     audio={AudioFile}
-     key={uniqid()}
-     musicId={user.uniq}
-    />
-   ))}
+   <MusicBox data={data} />
 
    {/* Music player */}
 

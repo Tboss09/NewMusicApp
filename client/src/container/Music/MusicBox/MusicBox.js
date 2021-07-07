@@ -1,9 +1,9 @@
-import { Box, Button, chakra, Flex, Icon, Image } from '@chakra-ui/react'
+import { Box, Button, chakra, Flex, Icon, Image, Link } from '@chakra-ui/react'
 import React from 'react'
-import useState from 'react-usestateref'
 import AudioPlayer from 'react-h5-audio-player'
 import 'react-h5-audio-player/lib/styles.css'
 import { FaPause, FaPlay } from 'react-icons/fa'
+import useState from 'react-usestateref'
 import './music.css'
 
 const Ma = ({ id, audio, image, musicId }) => {
@@ -43,7 +43,7 @@ const Ma = ({ id, audio, image, musicId }) => {
      </chakra.p>
     </Box>
 
-    <Image h={48} w="full" fit="cover" mt={2} src={image} alt="NIKE AIR" />
+    <Image h={48} w="full" fit="cover" mt={2} src="https://peaceful-dry-tortugas-71515.herokuapp.com/upload/e071104fcae5880b1d6b0102885c9a04.jpg" alt="NIKE AIR" />
 
     <Flex
      alignItems="center"
@@ -58,7 +58,10 @@ const Ma = ({ id, audio, image, musicId }) => {
        <Icon as={!play ? FaPlay : FaPause} cursor="pointer" />
       </Button>
      </chakra.h1>
-     <chakra.button
+     <Button
+      as={Link}
+      href="https://peaceful-dry-tortugas-71515.herokuapp.com/upload/720a97134c9be88981ca3f6166d76808.mp3"
+      download
       px={4}
       py={2}
       bg="white"
@@ -75,7 +78,7 @@ const Ma = ({ id, audio, image, musicId }) => {
       }}
      >
       Download
-     </chakra.button>
+     </Button>
     </Flex>
     <Box
      as={AudioPlayer}
@@ -91,7 +94,7 @@ const Ma = ({ id, audio, image, musicId }) => {
      stomAdditionalControls={[]}
      customAdditionalControls={[]}
      showJumpControls={false}
-     src={audio}
+     href="https://peaceful-dry-tortugas-71515.herokuapp.com/upload/720a97134c9be88981ca3f6166d76808.mp3"
      onEnded={e => setPlay(false)}
      // other props here
     />
