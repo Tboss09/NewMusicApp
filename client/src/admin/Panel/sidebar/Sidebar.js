@@ -26,7 +26,6 @@ import UploadSong from '../../Upload/UploadNewSong'
 export default function Swibc() {
  const sidebar = useDisclosure()
  const integrations = useDisclosure()
-
  const [location, setLocation] = React.useState({
   home: false,
   upload: false,
@@ -38,7 +37,6 @@ export default function Swibc() {
  React.useEffect(() => {
   params === 'uploadsong' && setLocation({ upload: true })
   params === 'home' && setLocation({ home: true })
-  console.log(location.upload)
   return () => {
    setLocation({
     home: false,
@@ -135,6 +133,7 @@ export default function Swibc() {
    </Flex>
   </Box>
  )
+
  return (
   <Box as="section" bg={useColorModeValue('gray.50', 'gray.700')} minH="100vh">
    <SidebarContent display={{ base: 'none', md: 'unset' }} />

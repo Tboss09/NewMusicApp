@@ -33,6 +33,7 @@ export const SignUpAdmin = (req, res) => {
 }
 
 export const AdminLogin = (req, res) => {
+  console.log(req.body)
  if (!req.body.username) {
   res.status(404).json({ success: false, message: 'Username was not given' })
   console.log('Username not given')
@@ -66,6 +67,7 @@ export const AdminLogin = (req, res) => {
          message: `Authentication successful`,
          token: token,
         })
+        console.log('Sign in successful', token)
        }
       })
      }
@@ -82,4 +84,3 @@ export const CreateNewSong = (req, res) => {
  const data = req.body
  console.log(data)
 }
-// Post SongName and author

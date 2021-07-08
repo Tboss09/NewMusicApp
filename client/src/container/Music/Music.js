@@ -1,10 +1,7 @@
-import AudioFile from '../../components/assets/audio/Caveman.mp3'
 import { SimpleGrid } from '@chakra-ui/react'
 import React from 'react'
-import uniqid from 'uniqid'
-import ImageOne from '../../components/assets/img/bg1.jpg'
-import MusicBox from './MusicBox/MusicBox'
 import { useQuery } from 'react-query'
+import MusicBox from './MusicBox/MusicBox'
 
 const Music = () => {
  const { isLoading, error, data } = useQuery('allSongs', () =>

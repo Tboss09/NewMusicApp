@@ -1,11 +1,11 @@
+import { ChakraProvider } from '@chakra-ui/react'
 import React from 'react'
-import { QueryClient, QueryClientProvider, useQuery } from 'react-query'
 import ReactDOM from 'react-dom'
-import App from './App'
 import 'react-h5-audio-player/lib/styles.css'
-import { ChakraProvider, extendTheme } from '@chakra-ui/react'
-import './index.css'
+import { QueryClient, QueryClientProvider } from 'react-query'
 import { BrowserRouter as Router } from 'react-router-dom'
+import App from './App'
+import './index.css'
 
 const queryClient = new QueryClient()
 

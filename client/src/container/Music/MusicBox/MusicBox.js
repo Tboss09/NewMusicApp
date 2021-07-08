@@ -6,7 +6,7 @@ import { FaPause, FaPlay } from 'react-icons/fa'
 import useState from 'react-usestateref'
 import './music.css'
 
-const Ma = ({ id, audio, image, musicId }) => {
+const Ma = ({ id, musicId }) => {
  const textInput = React.createRef()
  const [play, setPlay] = React.useState(false)
  const [disabled, setDisabled, ref] = useState(false)
@@ -22,7 +22,7 @@ const Ma = ({ id, audio, image, musicId }) => {
     : // if icon == pause then pause
       textInput.current.audio.current.pause()
   },
-  [textInput, id, play, musicId]
+  [textInput, play]
  )
 
  return (
@@ -43,7 +43,14 @@ const Ma = ({ id, audio, image, musicId }) => {
      </chakra.p>
     </Box>
 
-    <Image h={48} w="full" fit="cover" mt={2} src="https://peaceful-dry-tortugas-71515.herokuapp.com/upload/e071104fcae5880b1d6b0102885c9a04.jpg" alt="NIKE AIR" />
+    <Image
+     h={48}
+     w="full"
+     fit="cover"
+     mt={2}
+     src="https://peaceful-dry-tortugas-71515.herokuapp.com/upload/e071104fcae5880b1d6b0102885c9a04.jpg"
+     alt="NIKE AIR"
+    />
 
     <Flex
      alignItems="center"
