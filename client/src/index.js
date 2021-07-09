@@ -6,17 +6,26 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import { BrowserRouter as Router } from 'react-router-dom'
 import App from './App'
 import './index.css'
-
-const queryClient = new QueryClient()
-
+const twentyFourHoursInMs = 60 * 1000;
+const queryClient =  new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false,
+        refetchOnmount: false,
+        refetchOnReconnect: false,
+        retry: false,
+        staleTime: twentyFourHoursInMs,
+      },
+    },
+  });
 ReactDOM.render(
  <Router>
   <React.StrictMode>
-   <ChakraProvider>
     <QueryClientProvider client={queryClient}>
+   <ChakraProvider>
      <App />
-    </QueryClientProvider>
    </ChakraProvider>
+    </QueryClientProvider>
   </React.StrictMode>
  </Router>,
  document.getElementById('root')

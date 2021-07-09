@@ -11,5 +11,13 @@
     height:100% !important;
     margin: 0px !important;
 }
-.audio-player .rhap_main-controls{
+.rhap_main-controls{
+    display: none;
+}
+.rhap_current-time{
+    color :#fff
+}
+.rhap_progress-indicator{
+    background:#fff;
+
 }

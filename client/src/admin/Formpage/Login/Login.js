@@ -1,26 +1,24 @@
 // External files
 import {
- Box,
- FormControl,
- FormErrorMessage,
- FormLabel,
- Input,
- useToast,
+  Box,
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+  Input,
+  useToast
 } from '@chakra-ui/react'
 import React from 'react'
 // This is gonna be used for validation of form
 import { useForm } from 'react-hook-form'
-import { Redirect, useHistory } from 'react-router-dom'
+import { Redirect } from 'react-router-dom'
 import useLocalStorage from 'react-use-localstorage'
 import axios from '../../../axios/axiosConfig'
 // internal files
 import './login.css'
 
 const Login = () => {
- let history = useHistory()
  const toast = useToast()
  const [item, setItem] = useLocalStorage('token', '')
- const [redirectToDashBoard, setRedirectToDashBoard] = React.useState(false)
  const {
   register,
   reset,
@@ -28,36 +26,38 @@ const Login = () => {
   formState: { errors },
  } = useForm()
  //  Sending a post request to the server with the username and Password
- const onSubmit = React.useCallback(data => {
-  if (data) {
-    console.log(data)
-   const { username, password } = data
-   axios
-    .post('/admin', {
-     username,
-     password,
-    })
-    .then(res => {
-      console.log(res)
-    })
-    .catch(err => {
-     console.log(err)
-     toast({
-      title: 'Error!.',
-      description: `${err.response.data}`,
-      status: 'error',
-      duration: 5000,
-      position: 'top-right',
-      isClosable: true,
+ const onSubmit = React.useCallback(
+  data => {
+   if (data) {
+    const { username, password } = data
+    axios
+     .post('/admin', {
+      username,
+      password,
      })
-    })
-   reset([])
-  }
- }, [])
+     .then(res => {
+      setItem(res.data.token)
+     })
+     .catch(err => {
+      console.log(err)
+      toast({
+       title: 'Error!.',
+       description: `${err.response.data}`,
+       status: 'error',
+       duration: 5000,
+       position: 'top-right',
+       isClosable: true,
+      })
+     })
+    reset([])
+   }
+  },
+  [reset,toast,setItem]
+ )
 
  return (
   <>
-  
+   {!item ? (
     <Box className="box login">
      <Box className="w100 main">
       <article className="br2 ba dark-gray shadow-4 article b--black-10 w-100 w-50-m w-25-l mw8 pa4 center">
@@ -109,8 +109,9 @@ const Login = () => {
       </article>
      </Box>
     </Box>
-  
-
+   ) : (
+    <Redirect to="/dashboard" />
+   )}
   </>
  )
 }

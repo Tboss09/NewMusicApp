@@ -1,6 +1,6 @@
 import { Box, Center, LinkBox, LinkOverlay } from '@chakra-ui/layout'
 import React from 'react'
-import { Link as Navigate, Route, Switch, useLocation } from 'react-router-dom'
+import { Link as Navigate, Route, Switch } from 'react-router-dom'
 import useLocalStorage from 'react-use-localstorage'
 import useState from 'react-usestateref'
 import 'tachyons'
@@ -16,10 +16,10 @@ import Home from './container/home/Home'
 import Music from './container/Music/Music'
 
 const App = () => {
- const location = useLocation().pathname
  const [changeNav, setChangeNav] = React.useState(false)
  const [authorized, setAuthorized, ref] = useState(false)
- const [item] = useLocalStorage('token', '')
+ const [item,setItem] = useLocalStorage('token', '')
+ const date = new Date().getSeconds()
 
  React.useEffect(() => {
   if (
@@ -40,31 +40,21 @@ const App = () => {
      setAuthorized(true)
     })
     .catch(err => {
+        setItem()
      setAuthorized(false)
     })
 
    setChangeNav(true)
   }
- }, [setAuthorized, item])
+ }, [setAuthorized, item, window.location.pathname])
 
  //  Protect users{headers: {
 
- React.useEffect(() => {
-  if (
-   window.location.pathname === '/dashboard/uploadsong' ||
-   window.location.pathname === '/dashboard/home' ||
-   window.location.pathname === '/dashboard'
-  ) {
-  }
-
-  return
- }, [window.location.pathname])
-
  return (
-  <>
+  <React.Fragment key ={date}>
    {!changeNav && <Nav />}
 
-   <Switch>
+   <Switch key ={date}>
     <Route exact path="/">
      <Home />
     </Route>
@@ -86,7 +76,7 @@ const App = () => {
     </Route>
 
     {ref.current ? (
-     <>
+     <React.Fragment >
       <Route exact path="/dashboard">
        <Dashboard />
       </Route>
@@ -94,7 +84,7 @@ const App = () => {
       <Route exact path="/dashboard/:params">
        <Dashboard key={uniqid()} />
       </Route>
-     </>
+     </React.Fragment>
     ) : (
      <Center h={{ base: '300px', md: '300px', lg: '500px' }}>
       <LinkBox
@@ -124,7 +114,7 @@ const App = () => {
    </Switch>
 
    {!changeNav && <Footer />}
-  </>
+  </React.Fragment>
  )
 }
 export default App
