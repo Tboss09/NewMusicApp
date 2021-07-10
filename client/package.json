@@ -1,6 +1,7 @@
 {
   "name": "react-app",
   "version": "0.1.0",
+  "proxy": "https://peaceful-dry-tortugas-71515.herokuapp.com",
   "private": true,
   "dependencies": {
     "@chakra-ui/icons": "^1.0.13",

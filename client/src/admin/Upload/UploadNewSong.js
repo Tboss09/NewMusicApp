@@ -29,7 +29,6 @@ import axios from '../../axios/axiosConfig'
 export default function Component() {
  const toast = useToast()
  const [responseFromServer, setResponseFromServer] = useState(true)
- const [, clearFileForm, setClearFileForm] = useState(false)
  const [filePreview, setFilePreview, newFile] = useState({
   img: null,
   audio: null,
@@ -42,7 +41,7 @@ export default function Component() {
   setError,
   setValue,
   reset,
-
+  unregister,
   clearErrors,
   formState: { errors },
  } = useForm()
@@ -50,20 +49,27 @@ export default function Component() {
  useEffect(() => {
   register('song', { required: 'Audio file is required' })
   register('image', { required: 'Image file is required' })
+  return () => {
+   unregister('image')
+   unregister('image')
+  }
  }, [register])
+
  const onSubmit = form => {
+  document.forms[0].reset()
   //  If user is done submitting
   setFilePreview({
    img: null,
    audio: null,
   })
+
   setResponseFromServer(false)
 
   if (form) {
+
    const { author, songName } = form
    let data_array = []
    data_array.push(form.song, form.image)
-   console.log(data_array)
    const data = new FormData()
    for (var x = 0; x < data_array.length; x++) {
     data.append('file', data_array[x])
@@ -78,37 +84,33 @@ export default function Component() {
      },
     })
     .then(res => {
-     data_array.length = 0
-     reset({ song: '' })
-     reset({ image: '' })
+      reset({},{keepValues:false})
+     data_array.length = []
      setResponseFromServer(true)
      toast({
       title: 'Successful',
       description: 'Song was successfully added',
       status: 'success',
-      duration: 3000,
+      duration: 4000,
       position: 'top-right',
       isClosable: true,
      })
     })
     .catch(err => {
+      reset({},{keepValues:false})
      setResponseFromServer(true)
+     document.getElementById('uploadForm').reset()
      data_array.length = 0
-     reset({ song: '' })
-     reset({ image: '' })
      console.log('Error:', err)
      toast({
       title: 'Error',
-      description: ` ${err}`,
+      description: `Error ${err}`,
       status: 'error',
       position: 'top-right',
-      duration: 3000,
+      duration: 4000,
       isClosable: true,
      })
     })
-   reset({})
-   reset({ song: '' })
-   reset({ image: '' })
   }
  }
 
@@ -132,6 +134,7 @@ export default function Component() {
      >
       <Box mt={[5, null, 0]}>
        <chakra.form
+        id="uploadForm"
         onSubmit={handleSubmit(onSubmit)}
         shadow="base"
         rounded={[null, 'md']}
@@ -278,6 +281,10 @@ export default function Component() {
                     compressedFile
                    ) // smaller than maxSizeMB
                    setValue('image', compressedFile)
+                   setFilePreview({...filePreview, 
+                    img: URL.createObjectURL(compressedFile),
+
+                  })
                   } catch (error) {
                    setError('image', {
                     type: 'manual',
@@ -320,6 +327,7 @@ export default function Component() {
              {newFile.current.audio ? (
               <Box
                as={AudioPlayer}
+               className = "audio"
                width="full"
                showJumpControls={false}
                showSkipControls={false}

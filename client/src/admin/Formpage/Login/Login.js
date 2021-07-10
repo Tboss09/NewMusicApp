@@ -61,7 +61,8 @@ const Login = () => {
     reset({ song: '' })
    }
   },
-  [reset, toast, reactLocalStorage]
+  
+  [reset, toast,ref,setTokenStoredInLocalStorage]
  )
  return (
   <>

@@ -1,20 +1,16 @@
-import { Box, Heading, SimpleGrid, Spacer, Stack } from '@chakra-ui/react'
+import { Box, SimpleGrid, Stack } from '@chakra-ui/react'
 import React from 'react'
-import useState from 'react-usestateref'
-import MusicContainer from './MusicBox/MusicContainer'
-import Search from './SearchBar/Search'
 import { useQuery } from 'react-query'
 import axios from '../../axios/axiosConfig'
-import IsLoading from './DataState/IsLoading'
+import EmptyArray from './DataState/EmptyArray'
 import Error from './DataState/Error'
+import IsLoading from './DataState/IsLoading'
+import MusicContainer from './MusicBox/MusicContainer'
 const Music = () => {
- const [search, setSearchEvent] = useState('')
- const [index, setIndex] = useState(null)
  const getAllSongs = React.useCallback(async () => {
   const { data } = await axios.get('/allSongs')
   return data.data
  }, [])
-
  const { isLoading, error, data } = useQuery('create', getAllSongs)
 
  // This makes sure the gotten data is not undefined before assigning it to the variable
@@ -28,6 +24,11 @@ const Music = () => {
    </Box>
   )
  }
+ console.log()
+
+ if ( data === undefined || data === []  || data.length === 0 ) {
+  return <EmptyArray />
+ }
 
  if (error) {
   return (
@@ -37,8 +38,6 @@ const Music = () => {
   )
  }
  // This makes sure the gotten data is not undefined before assigning it to the variable
-
- console.log(search)
 
  return (
   // Search for songs

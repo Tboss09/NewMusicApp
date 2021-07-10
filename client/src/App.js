@@ -47,13 +47,7 @@ const App = () => {
 
    setChangeNav(true)
   }
- }, [
-  setAuthorized,
-  item,
-  window.location.pathname,
-  reactLocalStorage.get,
-  reactLocalStorage.remove,
- ])
+ }, [item])
 
  //  Protect users{headers: {
 

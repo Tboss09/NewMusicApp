@@ -12,6 +12,8 @@ import LocalPassport from 'passport-local'
 import path from 'path'
 import PostRoute from './routes/PostRoute.js'
 import route from './routes/route.js'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
 import RecordLabel from './Schema/Schema.js'
 import SongSchema from './Schema/SongSchema.js'
 // server initialisation
@@ -21,6 +23,9 @@ dotenv.config()
 
 app.use(cors())
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+app.use(express.static(path.resolve(__dirname, `./build`)))   
 app.use(express.json({ limit: '80mb', extended: true }))
 app.use(
  express.urlencoded({ limit: '80mb', extended: true, parameterLimit: 80000 })
@@ -29,10 +34,10 @@ app.use((req, res, next) => {
  res.header('Access-Control-Allow-Origin', '*')
  next()
 })
+// passport Config
 app.use(passport.initialize())
 app.use(passport.session())
 
-// passport Config
 passport.serializeUser(RecordLabel.serializeUser())
 
 const LocalStrategy = LocalPassport.Strategy
@@ -66,7 +71,7 @@ const storage = new GridFsStorage({
     const filename = buf.toString('hex') + path.extname(file.originalname)
     const fileInfo = {
      filename: filename,
-     bucketName: 'RecordLabelSong',
+     bucketName: 'AllRecordLabelSongsAndImages',
     }
     resolve(fileInfo)
    })
@@ -108,15 +113,19 @@ db.once('open', function () {
    }
   })
  })
-
- console.log('Database successfully connected')
- gfs = new mongoose.mongo.GridFSBucket(db.db, {
-  bucketName: 'RecordLabelSong',
- })
-
+ //  Collection to store images
  app.get('/', (req, res) => {
   res.send('Hi there')
  })
+
+ console.log('Database successfully connected')
+ gfs = new mongoose.mongo.GridFSBucket(db.db, {
+  bucketName: 'AllRecordLabelSongsAndImages',
+ })
+ app.get('*', (req, res) => {
+  res.sendFile(path.resolve(__dirname, './build', 'index.html'));
+});
+
  // Send amount of downlad of a song
  app.post('/upload/fileDownload', (req, res) => {
   console.log(req.query)
@@ -134,22 +143,23 @@ db.once('open', function () {
      res.status(400).json({ success: false, message: `Error:${err}` })
      console.log('Error in addtion', err)
     }
-    res
-     .status(201)
-     .json({ success: false, message: `A song was downloade` })
+    res.status(201).json({ success: false, message: `A song was downloade` })
     console.log(success)
    }
   )
  })
  // Send amount of downlad of a song
-
+ //  app.post('/new', (req, res) => {
+ //   const newSongs = new SongSchema({ songs: [] })
+ //   newSongs.save().then(res => console.log(res))
+ //  })
  // Post new User song and author
  //Server first post new song  with song and image as empty string,
  app.post('/upload', (req, res) => {
   const { author, songName } = req.body
   const song = { author: author, songName: songName, image: '', song: '' }
 
-  const mongooseId = '60e78d4da1e1a90ffc312ea8'
+  const mongooseId = '60e9d01a7bdd1126582213e8'
   SongSchema.findOneAndUpdate(
    { _id: mongooseId },
    { $push: { songs: song } },

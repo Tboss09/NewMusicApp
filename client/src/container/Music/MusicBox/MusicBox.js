@@ -67,7 +67,7 @@ const Ma = ({ data }) => {
 
    // Play music
   },
-  [textInput, play, onToggle, textInput.current, setPlay]
+  [textInput, play, onToggle, setPlay]
  )
 
  return (
@@ -113,6 +113,7 @@ const Ma = ({ data }) => {
      <Box onClick={handleDownload}>
       <Button
        as={Link}
+       href={`${link}${song}`}
        download={`${songName.charAt(0).toUpperCase() + songName.slice(1)}-by-${
         author.charAt(0).toUpperCase() + author.slice(1)
        }.mp3`}
@@ -149,7 +150,7 @@ const Ma = ({ data }) => {
       mx="auto"
       right="0 "
       left="0 "
-      src={`${link}wwww_wwww_2021-07-10T08:43:33.361Z.mp3`}
+      src={`${link}${song}`}
       class="musicAudio"
       autoPlay={false}
       customVolumeControls={[]}

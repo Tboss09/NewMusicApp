@@ -14,6 +14,9 @@
 .rhap_main-controls{
     display: none;
 }
+.audio .rhap_controls-section .rhap_main-controls{
+    display: initial !important;
+}
 .rhap_current-time{
     color :#fff
 }
