@@ -1,8 +1,8 @@
 import { Box, Center, LinkBox, LinkOverlay } from '@chakra-ui/layout'
 import React from 'react'
 import { Link as Navigate, Route, Switch } from 'react-router-dom'
-import useLocalStorage from 'react-use-localstorage'
 import useState from 'react-usestateref'
+import { reactLocalStorage } from 'reactjs-localstorage'
 import 'tachyons'
 import uniqid from 'uniqid'
 import Admin from './admin/Admin'
@@ -18,7 +18,7 @@ import Music from './container/Music/Music'
 const App = () => {
  const [changeNav, setChangeNav] = React.useState(false)
  const [authorized, setAuthorized, ref] = useState(false)
- const [item,setItem] = useLocalStorage('token', '')
+ const [item, setItem] = React.useState(reactLocalStorage.get('token'))
  const date = new Date().getSeconds()
 
  React.useEffect(() => {
@@ -40,21 +40,28 @@ const App = () => {
      setAuthorized(true)
     })
     .catch(err => {
-        setItem()
      setAuthorized(false)
+     console.error(err.response.message)
+     reactLocalStorage.remove('token')
     })
 
    setChangeNav(true)
   }
- }, [setAuthorized, item, window.location.pathname])
+ }, [
+  setAuthorized,
+  item,
+  window.location.pathname,
+  reactLocalStorage.get,
+  reactLocalStorage.remove,
+ ])
 
  //  Protect users{headers: {
 
  return (
-  <React.Fragment key ={date}>
+  <React.Fragment key={date}>
    {!changeNav && <Nav />}
 
-   <Switch key ={date}>
+   <Switch key={date}>
     <Route exact path="/">
      <Home />
     </Route>
@@ -76,7 +83,7 @@ const App = () => {
     </Route>
 
     {ref.current ? (
-     <React.Fragment >
+     <React.Fragment>
       <Route exact path="/dashboard">
        <Dashboard />
       </Route>

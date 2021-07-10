@@ -11,20 +11,23 @@ import React from 'react'
 // This is gonna be used for validation of form
 import { useForm } from 'react-hook-form'
 import { Redirect } from 'react-router-dom'
-import useLocalStorage from 'react-use-localstorage'
+import useState from 'react-usestateref'
+import { reactLocalStorage } from 'reactjs-localstorage'
 import axios from '../../../axios/axiosConfig'
 // internal files
 import './login.css'
 
 const Login = () => {
+ const [tokenStoredInLocalStorage, setTokenStoredInLocalStorage, ref] =
+  useState('')
  const toast = useToast()
- const [item, setItem] = useLocalStorage('token', '')
  const {
   register,
   reset,
   handleSubmit,
   formState: { errors },
  } = useForm()
+
  //  Sending a post request to the server with the username and Password
  const onSubmit = React.useCallback(
   data => {
@@ -35,9 +38,13 @@ const Login = () => {
       username,
       password,
      })
+     //  Then get the jwt token and store it in the localStorage and also validate the user
      .then(res => {
-      setItem(res.data.token)
+      reactLocalStorage.set('token', res.data.token)
+      setTokenStoredInLocalStorage(reactLocalStorage.get('token'))
+      console.log(ref.current)
      })
+     //  Else Show an error
      .catch(err => {
       console.log(err)
       toast({
@@ -50,14 +57,15 @@ const Login = () => {
       })
      })
     reset([])
+    reset({ image: '' })
+    reset({ song: '' })
    }
   },
-  [reset,toast,setItem]
+  [reset, toast, reactLocalStorage]
  )
-
  return (
   <>
-   {!item ? (
+   {!ref.current ? (
     <Box className="box login">
      <Box className="w100 main">
       <article className="br2 ba dark-gray shadow-4 article b--black-10 w-100 w-50-m w-25-l mw8 pa4 center">

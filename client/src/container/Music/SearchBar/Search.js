@@ -4,19 +4,18 @@ import { Input } from '@chakra-ui/input'
 import { Stack } from '@chakra-ui/layout'
 import { Menu, MenuButton, MenuItem, MenuList } from '@chakra-ui/menu'
 import React from 'react'
-const Search = ({ setSearchEvent }) => {
+const Search = ({ setSearchEvent, setIndex }) => {
  const [search, setSearch] = React.useState('Song')
+ const [index, setSearchIndex] = React.useState(null)
  const [text, setText] = React.useState('')
  const handleChange = React.useCallback(
   e => {
    setText(e.target.value)
    setSearchEvent(text)
-   if (text) {
-   }
+   setIndex(index)
   },
-  [text]
+  [text, index]
  )
-
  return (
   <Stack
    direction={['row']}
@@ -40,9 +39,23 @@ const Search = ({ setSearchEvent }) => {
     >
      {search}
     </MenuButton>
-    <MenuList>
-     <MenuItem onClick={e => setSearch(e.target.textContent)}>Song</MenuItem>
-     <MenuItem onClick={e => setSearch(e.target.textContent)}>Author</MenuItem>
+    <MenuList >
+     <MenuItem
+      onClick={e => {
+       setSearch(e.target.textContent)
+       setSearchIndex(0)
+      }}
+     >
+      Song
+     </MenuItem>
+     <MenuItem
+      onClick={e => {
+       setSearch(e.target.textContent)
+       setSearchIndex(1)
+      }}
+     >
+      Author
+     </MenuItem>
     </MenuList>
    </Menu>
   </Stack>

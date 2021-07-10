@@ -9,38 +9,70 @@ import {
  SlideFade,
  useDisclosure,
 } from '@chakra-ui/react'
+import useState from 'react-usestateref'
 import React from 'react'
 import AudioPlayer from 'react-h5-audio-player'
 import 'react-h5-audio-player/lib/styles.css'
 import { FaPause, FaPlay } from 'react-icons/fa'
 import './music.css'
-
+import axios from '../../../axios/axiosConfig'
 const Ma = ({ data }) => {
  const link = 'https://peaceful-dry-tortugas-71515.herokuapp.com/upload/'
- const { song, image, author, songName } = data[0]
+ const { song, image, author, songName, _id } = data
  const { isOpen, onToggle } = useDisclosure()
  const textInput = React.createRef()
  const [play, setPlay] = React.useState(false)
+ const [fileDownload, setFileDownload, ref] = useState(false)
+
+ //  THis is sent everytime a file is downloaded
+ const handleDownload = React.useCallback(() => {
+  setFileDownload(true)
+  console.log(ref.current ? 'clicked' : 'not cliekkk')
+  if (ref.current) {
+   axios
+    .post('/upload/fileDownload', null, {
+     params: {
+      amountOfDownload: 1,
+      _id: _id,
+     },
+    })
+    .then(res => {
+     setFileDownload(false)
+     console.log(res)
+    })
+    .catch(err => {
+     setFileDownload(false)
+     console.log(err)
+    })
+  }
+ }, [ref, fileDownload])
 
  const handlePlay = React.useCallback(
   e => {
    onToggle()
-
    setPlay(!play)
+   const audios = document.querySelectorAll('audio')
+   for (var i = 0, len = audios.length; i < len; i++) {
+    if (
+     audios[i].attributes[0].nodeValue !==
+     textInput.current.audio.current.src.trim()
+    ) {
+     audios[i].currentTime = 0 * 1000
+     audios[i].pause()
+    }
+    play
+     ? textInput.current.audio.current.pause()
+     : textInput.current.audio.current.play()
+   }
 
    // Play music
-   !play
-    ? // if icon == play then play
-      textInput.current.audio.current.play()
-    : // if icon == pause then pause
-      textInput.current.audio.current.pause()
   },
-  [textInput, play, onToggle]
+  [textInput, play, onToggle, textInput.current, setPlay]
  )
 
  return (
   <>
-   <Box position="relative" maxW="lg" mx="auto" shadow="lg" rounded="md">
+   <Box position="relative" w="100%" mx="auto" shadow="lg" rounded="md">
     <Box px={4} py={2}>
      <chakra.h1
       color="black"
@@ -50,13 +82,13 @@ const Ma = ({ data }) => {
      >
       {songName}
      </chakra.h1>
-     <chakra.p mt={1} fontSize="sm" color="black">
-      {author}
+     <chakra.p mt={1} fontSize="md" color="black">
+      By {author}
      </chakra.p>
     </Box>
 
     <Image
-     h={48}
+     h="52"
      w="full"
      fit="cover"
      mt={2}
@@ -73,31 +105,35 @@ const Ma = ({ data }) => {
      bg="gray.900"
      roundedBottom="lg"
     >
-     <chakra.h1 color="white" fontWeight="bold" fontSize="lg">
+     <Box>
       <Button variant="unstyled" onClick={handlePlay}>
-       <Icon as={!play ? FaPlay : FaPause} cursor="pointer" />
+       <Icon as={!play ? FaPlay : FaPause} cursor="pointer" color="white" />
       </Button>
-     </chakra.h1>
-     <Button
-      as={Link}
-      download
-      px={4}
-      py={2}
-      bg="white"
-      fontSize="xs"
-      color="gray.900"
-      fontWeight="bold"
-      rounded="sm"
-      textTransform="uppercase"
-      _hover={{
-       bg: 'gray.200',
-      }}
-      _focus={{
-       bg: 'gray.400',
-      }}
-     >
-      Download
-     </Button>
+     </Box>
+     <Box onClick={handleDownload}>
+      <Button
+       as={Link}
+       download={`${songName.charAt(0).toUpperCase() + songName.slice(1)}-by-${
+        author.charAt(0).toUpperCase() + author.slice(1)
+       }.mp3`}
+       px={4}
+       py={2}
+       bg="white"
+       fontSize="xs"
+       color="gray.900"
+       fontWeight="bold"
+       rounded="sm"
+       textTransform="uppercase"
+       _hover={{
+        bg: 'gray.200',
+       }}
+       _focus={{
+        bg: 'gray.400',
+       }}
+      >
+       Download
+      </Button>
+     </Box>
     </Flex>
 
     <SlideFade in={isOpen} offsetY="30px">
@@ -105,6 +141,7 @@ const Ma = ({ data }) => {
       as={AudioPlayer}
       ref={textInput}
       position="absolute"
+      data-set="audio"
       bg="blackAlpha.400"
       color="white"
       bottom="16"
@@ -112,14 +149,14 @@ const Ma = ({ data }) => {
       mx="auto"
       right="0 "
       left="0 "
-      src={`${link}${song}`}
+      src={`${link}wwww_wwww_2021-07-10T08:43:33.361Z.mp3`}
       class="musicAudio"
       autoPlay={false}
       customVolumeControls={[]}
-      stomAdditionalControls={[]}
       customAdditionalControls={[]}
       showJumpControls={false}
       onEnded={e => setPlay(false)}
+      onPause={e => setPlay(false)}
       // other props here
      />
     </SlideFade>

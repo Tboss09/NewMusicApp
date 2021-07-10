@@ -55,7 +55,7 @@ const Component = () => {
    ANIMATION_DIRECTION.toLowerCase() === 'left' ? prevSlide() : nextSlide()
   }, SLIDES_INTERVAL_TIME)
   return () => clearInterval(automatedSlide)
- }, [   ])
+ }, [])
 
  return (
   <div>

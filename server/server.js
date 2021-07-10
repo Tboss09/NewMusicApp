@@ -1,6 +1,7 @@
 import cors from 'cors'
 import dotenv from 'dotenv'
 import express from 'express'
+import crypto from 'crypto'
 import fs from 'fs'
 import mongoose from 'mongoose'
 import jwt from 'jsonwebtoken'
@@ -58,15 +59,11 @@ const storage = new GridFsStorage({
  db: promise,
  file: (req, file) => {
   return new Promise((resolve, reject) => {
-   fs.readFile('file.txt', 'utf-8', (err, data) => {
+   crypto.randomBytes(16, (err, buf) => {
     if (err) {
      return reject(err)
     }
-
-    const newData = JSON.parse(data)
-    const { author, songName } = newData
-
-    const filename = `${songName}_${author}` + path.extname(file.originalname)
+    const filename = buf.toString('hex') + path.extname(file.originalname)
     const fileInfo = {
      filename: filename,
      bucketName: 'RecordLabelSong',
@@ -120,11 +117,38 @@ db.once('open', function () {
  app.get('/', (req, res) => {
   res.send('Hi there')
  })
+ // Send amount of downlad of a song
+ app.post('/upload/fileDownload', (req, res) => {
+  console.log(req.query)
+  const { amountOfDownload, _id } = req.query
+  const downloadIncByOne = parseFloat(amountOfDownload)
+  SongSchema.update(
+   { 'songs._id': mongoose.Types.ObjectId(`${_id}`) },
+   {
+    $inc: {
+     'songs.$.amountOfDownload': amountOfDownload,
+    },
+   },
+   (err, success) => {
+    if (err) {
+     res.status(400).json({ success: false, message: `Error:${err}` })
+     console.log('Error in addtion', err)
+    }
+    res
+     .status(201)
+     .json({ success: false, message: `A song was downloade` })
+    console.log(success)
+   }
+  )
+ })
+ // Send amount of downlad of a song
+
  // Post new User song and author
- //Server first post new with song and image as empty string, then it posts the song and image
+ //Server first post new song  with song and image as empty string,
  app.post('/upload', (req, res) => {
   const { author, songName } = req.body
   const song = { author: author, songName: songName, image: '', song: '' }
+
   const mongooseId = '60e78d4da1e1a90ffc312ea8'
   SongSchema.findOneAndUpdate(
    { _id: mongooseId },
@@ -157,6 +181,7 @@ db.once('open', function () {
   )
  })
 
+ // then it posts the song and image
  app.post('/upload/song', upload.array('file', 3), (req, res, next) => {
   const files = req.files
   console.log(req.body, files)
@@ -165,6 +190,7 @@ db.once('open', function () {
    const file = files.map(file => {
     return file.filename
    })
+
    console.log(req.body, files)
 
    fs.readFile('file.txt', 'utf-8', (err, data) => {
@@ -193,7 +219,7 @@ db.once('open', function () {
   }
  })
 
-
+ //  Get a particular song or image
  app.get('/upload/:filename', (req, res) => {
   const fileName = req.params.filename
   gfs.find({ filename: fileName }).toArray((err, files) => {
@@ -208,7 +234,7 @@ db.once('open', function () {
   })
  })
 
- //  get all files
+ //get all files
  app.get('/allSongs', (req, res) => {
   SongSchema.find({})
    .then(data => {
@@ -218,6 +244,9 @@ db.once('open', function () {
     res.status(404).json({ success: false, message: err })
     console.log(err)
    })
+
+  //  if User searched for a item
+  //  Then run the query
  })
 
  app.listen(port, () => {

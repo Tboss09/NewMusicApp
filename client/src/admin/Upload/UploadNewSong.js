@@ -17,6 +17,7 @@ import {
  useToast,
  VisuallyHidden,
 } from '@chakra-ui/react'
+import imageCompression from 'browser-image-compression'
 import React, { useEffect } from 'react'
 import AudioPlayer from 'react-h5-audio-player'
 import { useForm } from 'react-hook-form'
@@ -28,6 +29,7 @@ import axios from '../../axios/axiosConfig'
 export default function Component() {
  const toast = useToast()
  const [responseFromServer, setResponseFromServer] = useState(true)
+ const [, clearFileForm, setClearFileForm] = useState(false)
  const [filePreview, setFilePreview, newFile] = useState({
   img: null,
   audio: null,
@@ -45,15 +47,12 @@ export default function Component() {
   formState: { errors },
  } = useForm()
 
-
- 
  useEffect(() => {
   register('song', { required: 'Audio file is required' })
   register('image', { required: 'Image file is required' })
  }, [register])
  const onSubmit = form => {
   //  If user is done submitting
-  reset({})
   setFilePreview({
    img: null,
    audio: null,
@@ -79,6 +78,9 @@ export default function Component() {
      },
     })
     .then(res => {
+     data_array.length = 0
+     reset({ song: '' })
+     reset({ image: '' })
      setResponseFromServer(true)
      toast({
       title: 'Successful',
@@ -91,7 +93,9 @@ export default function Component() {
     })
     .catch(err => {
      setResponseFromServer(true)
-
+     data_array.length = 0
+     reset({ song: '' })
+     reset({ image: '' })
      console.log('Error:', err)
      toast({
       title: 'Error',
@@ -102,6 +106,9 @@ export default function Component() {
       isClosable: true,
      })
     })
+   reset({})
+   reset({ song: '' })
+   reset({ image: '' })
   }
  }
 
@@ -236,11 +243,49 @@ export default function Component() {
                  })
                  return
                 } else {
-                 setFilePreview({
-                  ...filePreview,
-                  img: URL.createObjectURL(value),
-                 })
-                 setValue('image', value)
+                 // No need to compress on server, this compresses the image from the front end
+                 ;(async function handleImageUpload(event) {
+                  const imageFile = value
+                  console.log(
+                   'originalFile instanceof Blob',
+                   imageFile instanceof Blob,
+                   imageFile
+                  ) // true
+                  console.log(
+                   `originalFile size ${imageFile.size / 1024 / 1024} MB`,
+                   imageFile
+                  )
+
+                  const options = {
+                   maxSizeMB: 1,
+                   maxWidthOrHeight: 1920,
+                   useWebWorker: true,
+                  }
+
+                  try {
+                   const compressedFile = await imageCompression(
+                    imageFile,
+                    options
+                   )
+                   console.log(
+                    'compressedFile instanceof Blob',
+                    compressedFile instanceof Blob
+                   ) // true
+                   console.log(
+                    `compressedFile size ${
+                     compressedFile.size / 1024 / 1024
+                    } MB`,
+                    compressedFile
+                   ) // smaller than maxSizeMB
+                   setValue('image', compressedFile)
+                  } catch (error) {
+                   setError('image', {
+                    type: 'manual',
+                    message: `'Error:${error}'`,
+                   })
+                   console.log(error)
+                  }
+                 })()
                  clearErrors('image')
                 }
                }}

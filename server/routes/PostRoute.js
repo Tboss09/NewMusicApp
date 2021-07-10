@@ -12,7 +12,7 @@ router.post('/admin', AdminLogin)
 // Songs Uploading
 
 //router.post('/music', CreateNewSong)
-router.post('/music', CreateNewSong)
+router.post('/upload', CreateNewSong)
 // Songs Uploading
 
 export default router

@@ -11,7 +11,7 @@ const queryClient =  new QueryClient({
     defaultOptions: {
       queries: {
         refetchOnWindowFocus: false,
-        refetchOnmount: false,
+        refetchOnMount: false,
         refetchOnReconnect: false,
         retry: false,
         staleTime: twentyFourHoursInMs,
@@ -19,7 +19,7 @@ const queryClient =  new QueryClient({
     },
   });
 ReactDOM.render(
- <Router>
+ <Router forceRefresh={true}>
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
    <ChakraProvider>
