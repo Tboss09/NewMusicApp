@@ -1,7 +1,6 @@
-import passport from 'passport'
 import jwt from 'jsonwebtoken'
+import passport from 'passport'
 import RecordLabel from '../Schema/Schema.js'
-import SongSchema from '../Schema/SongSchema.js'
 
 export const getAllMusicFiles = (req, res) => {
  res.status(200).json({ data: 'Hi' })
@@ -26,14 +25,14 @@ export const SignUpAdmin = (req, res) => {
    })
   } else {
    res
-    .status(404)
+    .status(201)
     .json({ success: true, message: 'Your account has been saved' })
   }
  })
 }
 
 export const AdminLogin = (req, res) => {
-  console.log(req.body)
+ console.log(req.body)
  if (!req.body.username) {
   res.status(404).json({ success: false, message: 'Username was not given' })
   console.log('Username not given')

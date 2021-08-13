@@ -21,6 +21,7 @@ import { FiMenu, FiSearch, FiUploadCloud } from 'react-icons/fi'
 import { HiCode } from 'react-icons/hi'
 import { MdHome, MdKeyboardArrowRight } from 'react-icons/md'
 import { NavLink as Navigate, useParams } from 'react-router-dom'
+import ProtectedRoute from '../../../axios/ProtectedRoute'
 import UploadSong from '../../Upload/UploadNewSong'
 
 export default function Swibc() {
@@ -135,6 +136,7 @@ export default function Swibc() {
  )
 
  return (
+     <ProtectedRoute>
   <Box as="section" bg={useColorModeValue('gray.50', 'gray.700')} minH="100vh">
    <SidebarContent display={{ base: 'none', md: 'unset' }} />
    <Drawer
@@ -191,5 +193,7 @@ export default function Swibc() {
     </Box>
    </Box>
   </Box>
+  </ProtectedRoute>
+
  )
 }

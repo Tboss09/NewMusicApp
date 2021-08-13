@@ -17,7 +17,7 @@ import { FaPause, FaPlay } from 'react-icons/fa'
 import './music.css'
 import axios from '../../../axios/axiosConfig'
 const Ma = ({ data }) => {
- const link = 'https://peaceful-dry-tortugas-71515.herokuapp.com/upload/'
+ const link = 'https://peaceful-dry-tortugas-71515.herokuapp.com/display'
  const { song, image, author, songName, _id } = data
  const { isOpen, onToggle } = useDisclosure()
  const textInput = React.createRef()
@@ -27,7 +27,7 @@ const Ma = ({ data }) => {
  //  THis is sent everytime a file is downloaded
  const handleDownload = React.useCallback(() => {
   setFileDownload(true)
-  console.log(ref.current ? 'clicked' : 'not cliekkk')
+ 
   if (ref.current) {
    axios
     .post('/upload/fileDownload', null, {

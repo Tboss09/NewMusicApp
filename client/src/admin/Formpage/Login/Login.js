@@ -1,69 +1,22 @@
 // External files
-import {
-  Box,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Input,
-  useToast
-} from '@chakra-ui/react'
 import React from 'react'
-// This is gonna be used for validation of form
-import { useForm } from 'react-hook-form'
+
+import {
+ Box,
+ FormControl,
+ FormErrorMessage,
+ FormLabel,
+ Input,
+} from '@chakra-ui/react'
 import { Redirect } from 'react-router-dom'
-import useState from 'react-usestateref'
-import { reactLocalStorage } from 'reactjs-localstorage'
-import axios from '../../../axios/axiosConfig'
+import useLogin from '../../../hooks/useLogin'
 // internal files
 import './login.css'
 
 const Login = () => {
- const [tokenStoredInLocalStorage, setTokenStoredInLocalStorage, ref] =
-  useState('')
- const toast = useToast()
- const {
-  register,
-  reset,
-  handleSubmit,
-  formState: { errors },
- } = useForm()
-
+ const { ref, errors, register, handleSubmit, onSubmit } = useLogin()
  //  Sending a post request to the server with the username and Password
- const onSubmit = React.useCallback(
-  data => {
-   if (data) {
-    const { username, password } = data
-    axios
-     .post('/admin', {
-      username,
-      password,
-     })
-     //  Then get the jwt token and store it in the localStorage and also validate the user
-     .then(res => {
-      reactLocalStorage.set('token', res.data.token)
-      setTokenStoredInLocalStorage(reactLocalStorage.get('token'))
-      console.log(ref.current)
-     })
-     //  Else Show an error
-     .catch(err => {
-      console.log(err)
-      toast({
-       title: 'Error!.',
-       description: `${err.response.data}`,
-       status: 'error',
-       duration: 5000,
-       position: 'top-right',
-       isClosable: true,
-      })
-     })
-    reset([])
-    reset({ image: '' })
-    reset({ song: '' })
-   }
-  },
-  
-  [reset, toast,ref,setTokenStoredInLocalStorage]
- )
+
  return (
   <>
    {!ref.current ? (
@@ -79,13 +32,11 @@ const Login = () => {
           {...register('username', {
            required: true,
            minLength: 4,
-           maxLength: 18,
           })}
           // Validates what typed in is a Valid email address
          />
          <FormErrorMessage w="48" mx="auto">
-          {errors.username &&
-           'Username must not be less than or equals to 12 characters'}
+          {errors.username && 'Username must not be less than  12 characters'}
          </FormErrorMessage>
         </FormControl>
 

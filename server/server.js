@@ -18,14 +18,14 @@ import RecordLabel from './Schema/Schema.js'
 import SongSchema from './Schema/SongSchema.js'
 // server initialisation
 const app = express()
-const port = process.env.PORT || 4000 // Config
+const port = process.env.PORT || 4001 // Config
 dotenv.config()
 
 app.use(cors())
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-app.use(express.static(path.resolve(__dirname, `./build`)))   
+app.use(express.static(path.resolve(__dirname, `./build`)))
 app.use(express.json({ limit: '80mb', extended: true }))
 app.use(
  express.urlencoded({ limit: '80mb', extended: true, parameterLimit: 80000 })
@@ -97,7 +97,9 @@ db.once('open', function () {
    res.status(403).json({ message: 'Forbidden' })
   }
  }
+
  app.get('/verifyUser', checkToken, (req, res) => {
+  console.log(req.token)
   jwt.verify(req.token, process.env.JWT_SECRET, (err, authorizedData) => {
    if (err) {
     //   If error send Forbidden (403)
@@ -105,7 +107,7 @@ db.once('open', function () {
     res.status(403).json({ message: 'forbidden' })
    } else {
     //  If token is successfully verified, we can send the authorized data
-    res.json({
+    res.status(200).json({
      message: 'Successful log in',
      authorizedData,
     })
@@ -123,14 +125,13 @@ db.once('open', function () {
   bucketName: 'AllRecordLabelSongsAndImages',
  })
  app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname, './build', 'index.html'));
-});
+  res.sendFile(path.resolve(__dirname, './build', 'index.html'))
+ })
 
  // Send amount of downlad of a song
  app.post('/upload/fileDownload', (req, res) => {
   console.log(req.query)
   const { amountOfDownload, _id } = req.query
-  const downloadIncByOne = parseFloat(amountOfDownload)
   SongSchema.update(
    { 'songs._id': mongoose.Types.ObjectId(`${_id}`) },
    {
@@ -143,23 +144,29 @@ db.once('open', function () {
      res.status(400).json({ success: false, message: `Error:${err}` })
      console.log('Error in addtion', err)
     }
-    res.status(201).json({ success: false, message: `A song was downloade` })
+    res.status(201).json({ success: false, message: `A song was downloaded` })
     console.log(success)
    }
   )
  })
  // Send amount of downlad of a song
- //  app.post('/new', (req, res) => {
- //   const newSongs = new SongSchema({ songs: [] })
- //   newSongs.save().then(res => console.log(res))
- //  })
+ app.post('/new', (req, res) => {
+  const newSongs = new SongSchema({ songs: [] })
+  newSongs
+   .save()
+   .then(res => console.log(res))
+   .catch(err => {
+    console.log(err)
+   })
+ })
  // Post new User song and author
  //Server first post new song  with song and image as empty string,
  app.post('/upload', (req, res) => {
   const { author, songName } = req.body
+  console.log(req.body)
   const song = { author: author, songName: songName, image: '', song: '' }
 
-  const mongooseId = '60e9d01a7bdd1126582213e8'
+  const mongooseId = '6116f2c1b9f7eb22c8b6a468'
   SongSchema.findOneAndUpdate(
    { _id: mongooseId },
    { $push: { songs: song } },
@@ -185,7 +192,7 @@ db.once('open', function () {
 
      return
     } else {
-     console.log(err)
+     console.log(error)
     }
    }
   )
@@ -230,7 +237,7 @@ db.once('open', function () {
  })
 
  //  Get a particular song or image
- app.get('/upload/:filename', (req, res) => {
+ app.get('/display/:filename', (req, res) => {
   const fileName = req.params.filename
   gfs.find({ filename: fileName }).toArray((err, files) => {
    if (!files[0] || files.length === 0) {
